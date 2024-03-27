@@ -1,0 +1,15 @@
+package com.example.travel.domain.repository
+
+import com.example.travel.domain.model.DayPlaceModel
+
+interface DayPlacesRepository {
+
+    suspend fun addDayPlaces(token: String, dayPlacesModel: DayPlaceModel)
+
+    suspend fun getPlaceListByUser(token: String): List<DayPlaceModel>
+
+//    suspend fun updateDayPlaces()
+//
+//    suspend fun deleteDayPlaces()
+
+}
