@@ -13,8 +13,8 @@ class DayPlacesRepositoryImpl: DayPlacesRepository {
         RetrofitInstance.travelApi.addDayPlace(token, mapper.mapModelToDto(dayPlacesModel))
     }
 
-    override suspend fun getPlaceListByUser(token: String): List<DayPlaceModel> {
-        return mapper.mapListDtoToList(RetrofitInstance.travelApi.getPlaceListByUser(token))
+    override suspend fun getPlaceListByUser(token: String, date: String): List<DayPlaceModel> {
+        return mapper.mapListDtoToList(RetrofitInstance.travelApi.getPlaceListByUser(token, date))
     }
 
 

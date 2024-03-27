@@ -6,7 +6,7 @@ interface DayPlacesRepository {
 
     suspend fun addDayPlaces(token: String, dayPlacesModel: DayPlaceModel)
 
-    suspend fun getPlaceListByUser(token: String): List<DayPlaceModel>
+    suspend fun getPlaceListByUser(token: String, date: String): List<DayPlaceModel>
 
 //    suspend fun updateDayPlaces()
 //

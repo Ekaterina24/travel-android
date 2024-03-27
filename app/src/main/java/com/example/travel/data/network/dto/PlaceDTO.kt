@@ -12,8 +12,8 @@ data class PlaceDTO(
     val subTypePlace: String,
     val latitude: String,
     val longitude: String,
-    val is_visited: String,
-    val is_favourite: String,
-    val updated_at: Date,
+    val is_visited: Boolean,
+    val is_favourite: Boolean,
+    val updated_at: String,
     val cityId: Int
 )

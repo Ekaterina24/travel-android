@@ -8,7 +8,7 @@ import java.util.Date
 
 class PlaceMapper {
 
-    private fun mapDtoToModel(placeDto: PlaceDTO) = PlaceModel(
+    fun mapDtoToModel(placeDto: PlaceDTO) = PlaceModel(
         generatedId = placeDto.generatedId,
         id = placeDto.id,
         name = placeDto.name,

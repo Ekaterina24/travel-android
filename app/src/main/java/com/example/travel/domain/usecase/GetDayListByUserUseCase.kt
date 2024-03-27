@@ -6,7 +6,7 @@ import com.example.travel.domain.repository.DayPlacesRepository
 class GetDayListByUserUseCase(
     private val repository: DayPlacesRepository
 ) {
-    suspend operator fun invoke(token: String): List<DayPlaceModel> {
-       return repository.getPlaceListByUser(token)
+    suspend operator fun invoke(token: String, date: String): List<DayPlaceModel> {
+       return repository.getPlaceListByUser(token, date)
     }
 }

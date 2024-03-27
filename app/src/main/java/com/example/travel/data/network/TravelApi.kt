@@ -1,5 +1,6 @@
 package com.example.travel.data.network
 
+import com.example.travel.data.network.dto.AudioDTO
 import com.example.travel.data.network.dto.CityDTO
 import com.example.travel.data.network.dto.DayPlaceDTO
 import com.example.travel.data.network.dto.PlaceDTO
@@ -14,6 +15,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 //const val BASE_URL = "https://192.168.1.28:3000/"
@@ -22,6 +24,9 @@ const val BASE_URL = "http://10.0.2.2:3000/"
 interface TravelApi {
     @GET("place")
     suspend fun getPlaces(@Query("cityId") cityId: Int): List<PlaceDTO>
+
+    @GET("place/{id}")
+    suspend fun getPlaceById(@Path("id") id: String): PlaceDTO
 
     @POST("trip")
     suspend fun createTrip(@Header("Authorization") token: String, @Body trip: TripDTO)
@@ -33,10 +38,17 @@ interface TravelApi {
     suspend fun addDayPlace(@Header("Authorization") token: String, @Body dayPlace: DayPlaceDTO)
 
     @GET("day-places")
-    suspend fun getPlaceListByUser(@Header("Authorization") token: String): List<DayPlaceDTO>
+    suspend fun getPlaceListByUser(@Header("Authorization") token: String,
+                                   @Query("date") date: String): List<DayPlaceDTO>
 
     @GET("city")
     suspend fun getCityList(): List<CityDTO>
+
+    @GET("audio/{id}")
+    suspend fun getAudioListByPlace(@Path("id") placeId: String): List<AudioDTO>
+
+    @GET("audio")
+    suspend fun getAudioList(): List<AudioDTO>
 }
 
 object RetrofitInstance {

@@ -42,7 +42,7 @@ class CalendarFragment : Fragment() {
     private var _binding: FragmentCalendarBinding? = null
     private val binding get() = _binding!!
 
-    private val token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InVzZXIzIiwiaWF0IjoxNzEwNTg0MzUwLCJleHAiOjE3MTA2NzA3NTB9.hPaCqKJJVzF2NSQ1EQwI5RG9gl5hUc9c3RIJux9k55k"
+    private val token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InVzZXIyIiwiaWF0IjoxNzExNTQ1MTgwLCJleHAiOjE3MTE2MzE1ODB9.I7y-2Vz_CtS6dcxm4lmGgheqq3nms-D9VjZiwfxdEtA"
     private var selectedDay = ""
     private var tripId = 0
 //    private var arrayData = mutableListOf<String>()
@@ -140,7 +140,7 @@ class CalendarFragment : Fragment() {
 
             selectedDay = "${d}:${m}:${year}"
             Log.d("MY_TAG", "onViewCreated: $selectedDay")
-
+            viewModel.getDayListByUser(token, selectedDay)
         }
 
         viewModel.getTripListByUser(token)
@@ -184,10 +184,10 @@ class CalendarFragment : Fragment() {
             }
         }
 
-binding.dayText.text = selectedDay
+        binding.dayText.text = selectedDay
 
 
-        viewModel.getDayListByUser(token)
+//        viewModel.getDayListByUser(token, selectedDay)
         val rvAdapter = DayListByUserAdapter()
         binding.rvPlaceList.adapter = rvAdapter
 

@@ -68,9 +68,9 @@ class CalendarViewModel(
         }
     }
 
-    fun getDayListByUser(token: String) {
+    fun getDayListByUser(token: String, date: String) {
         viewModelScope.launch {
-            _dayListByUser.emit(getDayListByUserUseCase(token))
+            _dayListByUser.emit(getDayListByUserUseCase(token, date))
         }
     }
 }

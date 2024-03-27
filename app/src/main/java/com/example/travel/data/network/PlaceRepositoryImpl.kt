@@ -10,4 +10,8 @@ class PlaceRepositoryImpl: PlaceRepository {
     override suspend fun getPlaces(cityId: Int): List<PlaceModel> {
         return mapper.mapListDtoToList(RetrofitInstance.travelApi.getPlaces(cityId))
     }
+
+    override suspend fun getPlaceById(id: String): PlaceModel {
+        return mapper.mapDtoToModel(RetrofitInstance.travelApi.getPlaceById(id))
+    }
 }

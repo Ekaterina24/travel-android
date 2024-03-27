@@ -13,6 +13,9 @@
         <action
             android:id="@+id/action_mapFragment_to_calendarFragment"
             app:destination="@id/calendarFragment" />
+        <action
+            android:id="@+id/action_mapFragment_to_placeDetailFragment"
+            app:destination="@id/placeDetailFragment" />
     </fragment>
     <fragment
         android:id="@+id/calendarFragment"
@@ -29,4 +32,9 @@
 <!--            android:name="tripId"-->
 <!--            app:argType="long" />-->
     </fragment>
+    <dialog
+        android:id="@+id/placeDetailFragment"
+        android:name="com.example.travel.presentation.PlaceDetailFragment"
+        android:label="fragment_place_detail"
+        tools:layout="@layout/fragment_place_detail" />
 </navigation>

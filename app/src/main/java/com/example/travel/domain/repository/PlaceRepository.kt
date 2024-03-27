@@ -6,4 +6,6 @@ interface PlaceRepository {
 
     suspend fun getPlaces(cityId: Int): List<PlaceModel>
 
+    suspend fun getPlaceById(id: String): PlaceModel
+
 }
