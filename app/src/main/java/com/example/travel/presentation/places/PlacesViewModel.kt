@@ -80,11 +80,11 @@ class PlacesViewModel(
         }
     }
 
-    fun getAudioList() {
-        viewModelScope.launch {
-            _audioListByPlace.emit(getAudioListUseCase())
-        }
-    }
+//    fun getAudioList() {
+//        viewModelScope.launch {
+//            _audioListByPlace.emit(getAudioListUseCase())
+//        }
+//    }
 
     fun getCityList() {
         viewModelScope.launch {

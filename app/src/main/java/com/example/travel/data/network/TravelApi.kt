@@ -3,9 +3,12 @@ package com.example.travel.data.network
 import com.example.travel.data.network.dto.AudioDTO
 import com.example.travel.data.network.dto.CityDTO
 import com.example.travel.data.network.dto.DayPlaceDTO
+import com.example.travel.data.network.dto.LoginDTO
 import com.example.travel.data.network.dto.PlaceDTO
+import com.example.travel.data.network.dto.TokenDTO
 import com.example.travel.data.network.dto.TripDTO
 import com.example.travel.data.network.dto.TripListDTO
+import com.example.travel.data.network.dto.UserDTO
 import kotlinx.coroutines.flow.Flow
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -22,6 +25,12 @@ import retrofit2.http.Query
 const val BASE_URL = "http://10.0.2.2:3000/"
 
 interface TravelApi {
+    @POST("auth/register")
+    suspend fun register(@Body user: UserDTO)
+
+    @POST("auth/login")
+    suspend fun login(@Body user: LoginDTO): TokenDTO
+
     @GET("place")
     suspend fun getPlaces(@Query("cityId") cityId: Int): List<PlaceDTO>
 

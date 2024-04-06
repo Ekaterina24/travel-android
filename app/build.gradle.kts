@@ -42,7 +42,7 @@ android {
 }
 
 dependencies {
-
+    implementation ("com.github.MKergall:osmbonuspack:6.9.0")
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.11.0")
@@ -77,6 +77,6 @@ dependencies {
 
     implementation("com.google.android.material:material:1.11.0")
 
-//    implementation ("ru.dgis.sdk:sdk-full:latest.release")
-//    implementation("ru.dgis.sdk:map:X.Y.Z")
+    //osm
+    implementation ("org.osmdroid:osmdroid-android:6.1.16")
 }

@@ -14,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.travel.R
+import com.example.travel.data.local.prefs.SharedPreferences
 import com.example.travel.databinding.FragmentCalendarBinding
 import com.example.travel.domain.model.TripModel
 import com.example.travel.presentation.places.MapFragmentDirections
@@ -42,7 +43,7 @@ class CalendarFragment : Fragment() {
     private var _binding: FragmentCalendarBinding? = null
     private val binding get() = _binding!!
 
-    private val token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InVzZXIyIiwiaWF0IjoxNzExNTQ1MTgwLCJleHAiOjE3MTE2MzE1ODB9.I7y-2Vz_CtS6dcxm4lmGgheqq3nms-D9VjZiwfxdEtA"
+
     private var selectedDay = ""
     private var tripId = 0
 //    private var arrayData = mutableListOf<String>()
@@ -58,7 +59,9 @@ class CalendarFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val sharedPreferences = SharedPreferences(activity?.applicationContext)
 
+        val token = "Bearer ${sharedPreferences.getStringValue("token")}"
         val dateRangePicker =
             MaterialDatePicker.Builder.dateRangePicker()
                 .setTitleText("Select dates")
