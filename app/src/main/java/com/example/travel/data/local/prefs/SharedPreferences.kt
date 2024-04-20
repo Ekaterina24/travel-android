@@ -19,5 +19,14 @@ class SharedPreferences(context: Context?) {
         }
     }
 
+    fun saveFloat(KEY_NAME: String, value: Float) {
+        sharedPref.let {
+            val editor: SharedPreferences.Editor? = sharedPref?.edit()
+            editor?.putFloat(KEY_NAME, value)
+            editor?.apply()
+        }
+    }
+
     fun getStringValue(KEY_NAME: String, def: String? = null): String? = sharedPref?.getString(KEY_NAME, def)
+    fun getFloatValue(KEY_NAME: String, def: Float = 0f): Float? = sharedPref?.getFloat(KEY_NAME, def)
 }

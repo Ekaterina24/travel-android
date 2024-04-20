@@ -28,14 +28,14 @@ class UserMapper {
     )
 
     fun mapModelToDto(userModel: RegisterModel) = UserDTO(
-        username = userModel.username,
-        email = userModel.email,
-        password = userModel.password
+        username = userModel.username!!,
+        email = userModel.email!!,
+        password = userModel.password!!
     )
 
     fun mapModelToDto(userModel: LoginModel) = LoginDTO(
-        email = userModel.email,
-        password = userModel.password
+        email = userModel.email!!,
+        password = userModel.password!!
     )
 
 //    fun mapListDtoToList(dtoList: List<AudioDTO>): List<AudioModel> {

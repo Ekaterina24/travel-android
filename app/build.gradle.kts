@@ -79,4 +79,9 @@ dependencies {
 
     //osm
     implementation ("org.osmdroid:osmdroid-android:6.1.16")
+
+    //Weather
+    implementation("com.github.MatteoBattilana:WeatherView:3.0.0")
+    implementation("com.github.Dimezis:BlurView:version-2.0.3")
+    implementation("com.github.bumptech.glide:glide:4.12.0")
 }

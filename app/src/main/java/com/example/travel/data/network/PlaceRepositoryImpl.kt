@@ -1,5 +1,6 @@
 package com.example.travel.data.network
 
+import com.example.travel.data.network.api.RetrofitInstance
 import com.example.travel.data.network.mapper.PlaceMapper
 import com.example.travel.domain.model.PlaceModel
 import com.example.travel.domain.repository.PlaceRepository

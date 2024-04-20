@@ -13,4 +13,10 @@
         android:title="Calendar"
         android:icon="@drawable/ic_calendar"
         />
+
+    <item
+        android:id="@+id/weatherFragment"
+        android:title="Weather"
+        android:icon="@drawable/ic_sunny"
+        />
 </menu>

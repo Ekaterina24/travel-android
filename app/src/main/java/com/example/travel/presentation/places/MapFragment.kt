@@ -30,6 +30,8 @@ import androidx.lifecycle.lifecycleScope
 import com.example.travel.data.local.prefs.SharedPreferences
 import com.example.travel.databinding.FragmentMapBinding
 import com.example.travel.domain.model.AudioModel
+import com.example.travel.presentation.auth.AuthViewModel
+import com.example.travel.presentation.auth.AuthViewModelFactory
 import com.example.travel.presentation.calendar.CalendarViewModel
 import com.example.travel.presentation.calendar.CalendarViewModelFactory
 import com.example.travel.presentation.utils.DialogManager
@@ -59,11 +61,19 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
         CalendarViewModelFactory()
     }
 
+    private val viewModelAuth: AuthViewModel by viewModels {
+        AuthViewModelFactory()
+    }
+
     private var _binding: FragmentMapBinding? = null
     private val binding get() = _binding!!
 
-    private val sharedPreferences: SharedPreferences =
-        SharedPreferences(activity?.applicationContext)
+//    private val sharedPreferences: SharedPreferences =
+//        SharedPreferences(activity?.applicationContext)
+
+    private val sharedPreferences: SharedPreferences by lazy {
+        SharedPreferences(requireContext())
+    }
 
     private var isFineLocationPermissionGranted = false
     private var isCoarseLocationPermissionGranted = false
@@ -98,19 +108,18 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
         super.onViewCreated(view, savedInstanceState)
         val args = arguments?.getStringArrayList("key")
 
-//        registerPermissions()
-//        checkLocationEnabled()
-        pLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-            readPermissionGranted = permissions[Manifest.permission.READ_EXTERNAL_STORAGE] ?: readPermissionGranted
-            writePermissionGranted = permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE] ?: writePermissionGranted
-            readMediaImagesPermissionGranted = permissions[Manifest.permission.READ_MEDIA_IMAGES] ?: readMediaImagesPermissionGranted
-            readMediaVideoPermissionGranted = permissions[Manifest.permission.READ_MEDIA_VIDEO] ?: readMediaVideoPermissionGranted
-            readMediaAudioPermissionGranted = permissions[Manifest.permission.READ_MEDIA_AUDIO] ?: readMediaAudioPermissionGranted
-
-
-        }
-        updateOrRequestPermissions()
-         val token = "Bearer ${sharedPreferences.getStringValue("token")}"
+        registerPermissions()
+        checkLocationEnabled()
+//        pLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+//            readPermissionGranted = permissions[Manifest.permission.READ_EXTERNAL_STORAGE] ?: readPermissionGranted
+//            writePermissionGranted = permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE] ?: writePermissionGranted
+//            readMediaImagesPermissionGranted = permissions[Manifest.permission.READ_MEDIA_IMAGES] ?: readMediaImagesPermissionGranted
+//            readMediaVideoPermissionGranted = permissions[Manifest.permission.READ_MEDIA_VIDEO] ?: readMediaVideoPermissionGranted
+//            readMediaAudioPermissionGranted = permissions[Manifest.permission.READ_MEDIA_AUDIO] ?: readMediaAudioPermissionGranted
+//
+//
+//        }
+//        updateOrRequestPermissions()
 
         viewModel.getCityList()
         Log.d("MY_TAG", "token: ${sharedPreferences.getStringValue("token")}")
@@ -140,6 +149,9 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
                             items.map { city ->
                                 if (city.name == itemSelected) {
                                     cityId = city.id
+                                    sharedPreferences.save("city", city.name)
+                                    sharedPreferences.saveFloat("city_lat", city.latitude.toFloat())
+                                    sharedPreferences.saveFloat("city_lon", city.longitude.toFloat())
                                     binding.map.controller.setZoom(17.0)
                                     binding.map.controller.animateTo(GeoPoint(city.latitude, city.longitude))
                                 }
@@ -342,16 +354,16 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
                     isBackgroundLocationPermissionGranted =
                         permissions[Manifest.permission.ACCESS_BACKGROUND_LOCATION]
                             ?: isBackgroundLocationPermissionGranted
-                    isExternalWriteStoragePermissionGranted =
-                        permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE]
-                            ?: isExternalWriteStoragePermissionGranted
+//                    isExternalWriteStoragePermissionGranted =
+//                        permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE]
+//                            ?: isExternalWriteStoragePermissionGranted
                 } else {
                     isFineLocationPermissionGranted =
                         permissions[Manifest.permission.ACCESS_FINE_LOCATION]
                             ?: isFineLocationPermissionGranted
-                    isExternalWriteStoragePermissionGranted =
-                        permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE]
-                            ?: isExternalWriteStoragePermissionGranted
+//                    isExternalWriteStoragePermissionGranted =
+//                        permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE]
+//                            ?: isExternalWriteStoragePermissionGranted
                 }
 
             }
@@ -381,9 +393,9 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
         isFineLocationPermissionGranted = checkPermissionGranted(
             Manifest.permission.ACCESS_FINE_LOCATION
         )
-        isExternalWriteStoragePermissionGranted = checkPermissionGranted(
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        )
+//        isExternalWriteStoragePermissionGranted = checkPermissionGranted(
+//            Manifest.permission.WRITE_EXTERNAL_STORAGE
+//        )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             isCoarseLocationPermissionGranted = checkPermissionGranted(
@@ -394,9 +406,9 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
                 Manifest.permission.ACCESS_BACKGROUND_LOCATION
             )
 
-            isExternalWriteStoragePermissionGranted = checkPermissionGranted(
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-            )
+//            isExternalWriteStoragePermissionGranted = checkPermissionGranted(
+//                Manifest.permission.WRITE_EXTERNAL_STORAGE
+//            )
         }
 
         val permissionRequestList = ArrayList<String>()
@@ -409,20 +421,20 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
             isCoarseLocationPermissionGranted,
             Manifest.permission.ACCESS_COARSE_LOCATION, permissionRequestList
         )
-        addPermissionToRequestedList(
-            isExternalWriteStoragePermissionGranted,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE, permissionRequestList
-        )
+//        addPermissionToRequestedList(
+//            isExternalWriteStoragePermissionGranted,
+//            Manifest.permission.WRITE_EXTERNAL_STORAGE, permissionRequestList
+//        )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             addPermissionToRequestedList(
                 isBackgroundLocationPermissionGranted,
                 Manifest.permission.ACCESS_BACKGROUND_LOCATION, permissionRequestList
             )
-            addPermissionToRequestedList(
-                isExternalWriteStoragePermissionGranted,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE, permissionRequestList
-            )
+//            addPermissionToRequestedList(
+//                isExternalWriteStoragePermissionGranted,
+//                Manifest.permission.WRITE_EXTERNAL_STORAGE, permissionRequestList
+//            )
         }
 
         if (permissionRequestList.isNotEmpty()) {
@@ -440,9 +452,8 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
 
     override fun onResume() {
         super.onResume()
-//        requestPermissions()
+        requestPermissions()
     }
-
     private fun settingsOsm() {
         Configuration.getInstance().load(
             activity as AppCompatActivity,
@@ -461,39 +472,39 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun updateOrRequestPermissions() {
-        val hasReadPermission = ContextCompat.checkSelfPermission(
-            requireContext(),
-            Manifest.permission.READ_EXTERNAL_STORAGE
-        ) == PackageManager.PERMISSION_GRANTED
-        val hasWritePermission = ContextCompat.checkSelfPermission(
-            requireContext(),
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        ) == PackageManager.PERMISSION_GRANTED
-        val hasReadImagesPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.READ_MEDIA_IMAGES
-            ) == PackageManager.PERMISSION_GRANTED
-        } else {
-            TODO("VERSION.SDK_INT < TIRAMISU")
-        }
-        val minSdk29 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
-
-        readPermissionGranted = hasReadPermission
-        writePermissionGranted = hasWritePermission || minSdk29
-
-        val permissionsToRequest = mutableListOf<String>()
-        if(!writePermissionGranted) {
-            permissionsToRequest.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-        }
-        if(!readPermissionGranted) {
-            permissionsToRequest.add(Manifest.permission.READ_EXTERNAL_STORAGE)
-        }
-        if(permissionsToRequest.isNotEmpty()) {
-            pLauncher.launch(permissionsToRequest.toTypedArray())
-        }
-    }
+//    private fun updateOrRequestPermissions() {
+////        val hasReadPermission = ContextCompat.checkSelfPermission(
+////            requireContext(),
+////            Manifest.permission.READ_EXTERNAL_STORAGE
+////        ) == PackageManager.PERMISSION_GRANTED
+////        val hasWritePermission = ContextCompat.checkSelfPermission(
+////            requireContext(),
+////            Manifest.permission.WRITE_EXTERNAL_STORAGE
+////        ) == PackageManager.PERMISSION_GRANTED
+////        val hasReadImagesPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+////            ContextCompat.checkSelfPermission(
+////                requireContext(),
+////                Manifest.permission.READ_MEDIA_IMAGES
+////            ) == PackageManager.PERMISSION_GRANTED
+////        } else {
+////            TODO("VERSION.SDK_INT < TIRAMISU")
+////        }
+//        val minSdk29 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+//
+//        readPermissionGranted = hasReadPermission
+//        writePermissionGranted = hasWritePermission || minSdk29
+//
+//        val permissionsToRequest = mutableListOf<String>()
+//        if(!writePermissionGranted) {
+//            permissionsToRequest.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+//        }
+//        if(!readPermissionGranted) {
+//            permissionsToRequest.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+//        }
+//        if(permissionsToRequest.isNotEmpty()) {
+//            pLauncher.launch(permissionsToRequest.toTypedArray())
+//        }
+//    }
 
     override fun onDestroyView() {
         if (tts != null) {

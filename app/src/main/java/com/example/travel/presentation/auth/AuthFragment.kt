@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -17,6 +18,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.example.travel.data.local.prefs.SharedPreferences
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onEach
 
 
 class AuthFragment : Fragment() {
@@ -52,12 +56,6 @@ class AuthFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-//        with(binding) {
-//            name = tvName.text.toString()
-//            email = tvEmail.text.toString()
-//            password = tvPassword.text.toString()
-//        }
-
         binding.btnRegister.setOnClickListener {
             with(binding) {
                 name = tvName.text.toString()
@@ -67,28 +65,34 @@ class AuthFragment : Fragment() {
             viewModel.registerUser(RegisterModel(name, email, password))
         }
 
-        binding.btnLogin.setOnClickListener {
-            with(binding) {
-                email = tvEmail.text.toString()
-                password = tvPassword.text.toString()
-            }
-            viewModel.loginUser(LoginModel("user5@yandex.ru", "Df4f%bn%d"))
+//        viewModel.loginUser(LoginModel("user5@yandex.ru", "Df4f%bn%d"))
+//        viewModel.loginUser(LoginModel("user5@yandex.ru", "Df4f%bn%d"))
 
-            viewLifecycleOwner.lifecycleScope.launch {
+
+        binding.tvEmail.doAfterTextChanged {
+            email = it.toString()
+            Log.d("MY_TAG", "email: $it")
+        }
+
+        binding.tvPassword.doAfterTextChanged {
+            password = it.toString()
+        }
+
+        binding.btnLogin.setOnClickListener {
+            binding.progressBar.visibility = View.VISIBLE
+            viewModel.loginUser(LoginModel(email, password))
+
+            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                 viewModel.userToken.collect {
-                    withContext(Dispatchers.Main) {
+                    async {
                         sharedPreferences.save("token", it.accessToken)
+                    }.await()
+                    withContext(Dispatchers.Main) {
+                        binding.progressBar.visibility = View.GONE
+                        findNavController().navigate(R.id.action_authFragment_to_mapFragment)
                     }
                 }
             }
-
-            findNavController().navigate(R.id.action_authFragment_to_mapFragment)
         }
-
-binding.etName.setOnClickListener {
-    if (sharedPreferences.getStringValue("token") != null) {
-        binding.etName.text = "Token"
-    }
-}
     }
 }

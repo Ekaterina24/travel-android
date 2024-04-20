@@ -1,4 +1,4 @@
-package com.example.travel.data.network
+package com.example.travel.data.network.api
 
 import com.example.travel.data.network.dto.AudioDTO
 import com.example.travel.data.network.dto.CityDTO
@@ -9,7 +9,6 @@ import com.example.travel.data.network.dto.TokenDTO
 import com.example.travel.data.network.dto.TripDTO
 import com.example.travel.data.network.dto.TripListDTO
 import com.example.travel.data.network.dto.UserDTO
-import kotlinx.coroutines.flow.Flow
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -22,7 +21,8 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 //const val BASE_URL = "https://192.168.1.28:3000/"
-const val BASE_URL = "http://10.0.2.2:3000/"
+//const val BASE_URL = "http://10.0.2.2:3000/"
+const val BASE_URL = "https://a6eb-188-66-39-117.ngrok-free.app/"
 
 interface TravelApi {
     @POST("auth/register")

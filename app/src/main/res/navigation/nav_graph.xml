@@ -25,12 +25,6 @@
         <action
             android:id="@+id/action_calendarFragment_to_mapFragment"
             app:destination="@id/mapFragment" />
-<!--        <argument-->
-<!--            android:name="date"-->
-<!--            app:argType="string" />-->
-<!--        <argument-->
-<!--            android:name="tripId"-->
-<!--            app:argType="long" />-->
     </fragment>
     <dialog
         android:id="@+id/placeDetailFragment"
@@ -45,5 +39,23 @@
         <action
             android:id="@+id/action_authFragment_to_mapFragment"
             app:destination="@id/mapFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/weatherFragment"
+        android:name="com.example.travel.presentation.weather.WeatherFragment"
+        android:label="fragment_weather"
+        tools:layout="@layout/fragment_weather" >
+        <action
+            android:id="@+id/action_weatherFragment_to_cityFragment"
+            app:destination="@id/cityFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/cityFragment"
+        android:name="com.example.travel.presentation.weather.CityFragment"
+        android:label="fragment_city"
+        tools:layout="@layout/fragment_city" >
+        <action
+            android:id="@+id/action_cityFragment_to_weatherFragment"
+            app:destination="@id/weatherFragment" />
     </fragment>
 </navigation>
