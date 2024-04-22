@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.location.Location
 import android.location.LocationManager
 import android.media.MediaPlayer
 import android.os.Build
@@ -19,25 +20,34 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.travel.data.local.prefs.SharedPreferences
 import com.example.travel.databinding.FragmentMapBinding
 import com.example.travel.domain.model.AudioModel
+import com.example.travel.domain.model.CategoryModel
+import com.example.travel.domain.model.DayPlaceModel
 import com.example.travel.presentation.auth.AuthViewModel
 import com.example.travel.presentation.auth.AuthViewModelFactory
 import com.example.travel.presentation.calendar.CalendarViewModel
 import com.example.travel.presentation.calendar.CalendarViewModelFactory
+import com.example.travel.presentation.calendar.DayListByUserAdapter
 import com.example.travel.presentation.utils.DialogManager
 import com.example.travel.presentation.utils.addPermissionToRequestedList
 import com.example.travel.presentation.utils.checkPermissionGranted
 import com.example.travel.presentation.utils.showToast
+import com.example.travel.presentation.weather.ForecastAdapter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -46,9 +56,17 @@ import org.osmdroid.config.Configuration
 import org.osmdroid.library.BuildConfig
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.overlay.Marker
+import org.osmdroid.views.overlay.gestures.RotationGestureOverlay
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 import java.util.Locale
+import kotlin.math.PI
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.roundToInt
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 
 class MapFragment : Fragment(), TextToSpeech.OnInitListener {
@@ -68,12 +86,16 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
     private var _binding: FragmentMapBinding? = null
     private val binding get() = _binding!!
 
+    private var myLat: Double? = 0.0
+    private var myLon: Double? = 0.0
+
 //    private val sharedPreferences: SharedPreferences =
 //        SharedPreferences(activity?.applicationContext)
 
     private val sharedPreferences: SharedPreferences by lazy {
         SharedPreferences(requireContext())
     }
+//    private val categoryAdapter by lazy { CategoryListAdapter(this) }
 
     private var isFineLocationPermissionGranted = false
     private var isCoarseLocationPermissionGranted = false
@@ -89,10 +111,14 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
     private lateinit var pLauncher: ActivityResultLauncher<Array<String>>
 
     private var cityId = 0
+    private var category = ""
+    private var search = ""
 
     var placeId = ""
     private var tts: TextToSpeech? = null
     var text = ""
+
+    private var mLocOverlay: MyLocationNewOverlay? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -120,7 +146,7 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
 //
 //        }
 //        updateOrRequestPermissions()
-
+        val token = "Bearer ${sharedPreferences.getStringValue("token")}"
         viewModel.getCityList()
         Log.d("MY_TAG", "token: ${sharedPreferences.getStringValue("token")}")
         viewLifecycleOwner.lifecycleScope.launch {
@@ -134,9 +160,16 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
                     val adapter =
                         ArrayAdapter(requireContext(), R.layout.simple_spinner_item, itemName)
                     adapter.setDropDownViewResource(R.layout.simple_spinner_dropdown_item)
+                    var pos = 0
 
                     val spinner = binding.spinnerCity
                     spinner.adapter = adapter
+                    if (sharedPreferences.getStringValue("pos").toString().isEmpty()) {
+                        spinner.setSelection(pos)
+                    } else {
+                        sharedPreferences.getStringValue("pos")
+                            ?.let { it1 -> spinner.setSelection(it1.toInt()) }
+                    }
 
                     spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                         override fun onItemSelected(
@@ -149,16 +182,25 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
                             items.map { city ->
                                 if (city.name == itemSelected) {
                                     cityId = city.id
+                                    sharedPreferences.save("pos", position.toString())
                                     sharedPreferences.save("city", city.name)
                                     sharedPreferences.saveFloat("city_lat", city.latitude.toFloat())
-                                    sharedPreferences.saveFloat("city_lon", city.longitude.toFloat())
+                                    sharedPreferences.saveFloat(
+                                        "city_lon",
+                                        city.longitude.toFloat()
+                                    )
                                     binding.map.controller.setZoom(17.0)
-                                    binding.map.controller.animateTo(GeoPoint(city.latitude, city.longitude))
+                                    binding.map.controller.animateTo(
+                                        GeoPoint(
+                                            city.latitude,
+                                            city.longitude
+                                        )
+                                    )
                                 }
                             }
                             binding.map.overlays.clear()
                             try {
-                                viewModel.getPlaceList(cityId)
+                                viewModel.getPlaceList(cityId, search, category)
 
                             } catch (e: Exception) {
                                 Log.e("MY_TAG", "onViewCreated: ${e.message}")
@@ -170,6 +212,41 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
 
 
                 }
+            }
+        }
+
+        binding.map.overlays.add(RotationGestureOverlay(binding.map))
+
+        val rvCategoryAdapter = CategoryListAdapter(object : CategoryActionListener {
+            override fun onChoosePlace(place: CategoryModel) {
+
+            }
+
+            override fun getCategory(name: String) {
+                category = name
+                binding.map.overlays.clear()
+                viewModel.getPlaceList(cityId, search, category)
+
+
+                Log.d("TAG", "getCategory: ")
+//                binding.map.invalidate()
+
+
+            }
+
+        })
+        binding.rvCategoryList.adapter = rvCategoryAdapter
+        binding.rvCategoryList.layoutManager = LinearLayoutManager(
+            requireContext(), LinearLayoutManager.HORIZONTAL, false
+        )
+
+        viewModel.getCategoryList()
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.categoryList.collect{
+//                withContext()
+                Log.d("MY_TAG", "category: $it")
+                rvCategoryAdapter.submitList(it)
             }
         }
 //        val rvAdapter = PlaceListAdapter(
@@ -218,7 +295,6 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
 //        binding.rvPlaceList.adapter = rvAdapter
 
 
-
 //        viewLifecycleOwner.lifecycleScope.launch {
 //            viewModel.placeList.collect {
 //                Log.d("MY_TAG", "onViewCreated: $it")
@@ -234,7 +310,29 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
             }
         )
 
+        val rvAdapterPlace = PlaceListAdapter()
+        binding.rvPlaceList.adapter = rvAdapterPlace
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.placeList.collect {
+                Log.d("MY_TAG", "dayListByUser: $it")
+                rvAdapterPlace.submitList(it)
+            }
+        }
+
         binding.rvAudioList.adapter = rvAdapter
+
+        binding.btnPlaceList.setOnClickListener {
+            binding.apply {
+                container.visibility = View.VISIBLE
+                placeListContainer.visibility = View.VISIBLE
+            }
+        }
+
+        binding.btnCloseList.setOnClickListener {
+            binding.container.visibility = View.GONE
+            binding.placeListContainer.visibility = View.GONE
+        }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.audioListByPlace.collect {
@@ -254,6 +352,18 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
             }
         }
 
+//        val mLocProvider = GpsMyLocationProvider(activity)
+//        mLocOverlay = MyLocationNewOverlay(mLocProvider, binding.map)
+//        mLocOverlay?.enableMyLocation()
+//        mLocOverlay?.runOnFirstFix {
+//            binding.map.overlays.add(mLocOverlay)
+//        }
+//
+//        myLat = mLocOverlay?.myLocation?.latitude
+//        myLon = mLocOverlay?.myLocation?.longitude
+//        Log.d("MY_TAG", "mLocOverlay: ${myLat}")
+////        val res = mLocOverlay.myLocation
+        nearbyPlace()
 //        MediaPlayer(context).tex
 
 
@@ -263,9 +373,15 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
 //        }
 
         binding.map.setMultiTouchControls(true)
+//        binding.map
         val cluster = RadiusMarkerClusterer(activity?.applicationContext)
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.placeList.collect {
+                Log.d("MY_TAG", "placeList: $it")
+//                withContext(Dispatchers.Main) {
+//                    binding.map.overlays.clear() // Удалит все оверлеи, включая маркеры
+//                    binding.map.invalidate()
+//                }
                 it.map { place ->
                     val point = GeoPoint(place.latitude.toDouble(), place.longitude.toDouble())
                     val marker = Marker(binding.map)
@@ -275,8 +391,14 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
 
                     marker.setOnMarkerClickListener { _, _ ->
                         binding.map.controller.setZoom(19.0)
-                        binding.map.controller.animateTo(GeoPoint(place.latitude.toDouble(), place.longitude.toDouble()), 19.0, 2)
+                        binding.map.controller.animateTo(
+                            GeoPoint(
+                                place.latitude.toDouble(),
+                                place.longitude.toDouble()
+                            ), 19.0, 2
+                        )
                         binding.container.visibility = View.VISIBLE
+                        binding.detailContainer.visibility = View.VISIBLE
 
                         viewModel.getAudioListByPlace(place.id)
                         viewModel.getPlaceById(place.id)
@@ -292,6 +414,33 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
                                         if (currentPlace.description != " ") {
                                             tvDesc.visibility = View.VISIBLE
                                             tvDesc.text = currentPlace.description
+                                        } else {
+                                            tvDesc.visibility = View.GONE
+                                        }
+
+                                        btnClose.setOnClickListener {
+                                            container.visibility = View.GONE
+                                            detailContainer.visibility = View.GONE
+                                        }
+
+                                        btnAddPlace.setOnClickListener {
+                                            if (args.isNullOrEmpty()) {
+                                                Toast.makeText(
+                                                    requireContext(),
+                                                    "Выберите в календаре день, в который хотите посетить выбранное место!",
+                                                    Toast.LENGTH_SHORT
+                                                )
+                                                    .show()
+                                            } else {
+                                                viewModelCalendar.addDayPlace(
+                                                    token,
+                                                    DayPlaceModel(
+                                                        placeId = place.id,
+                                                        dateVisiting = args[0].toString(),
+                                                        tripId = args[1].toString().toInt(),
+                                                    )
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -375,8 +524,10 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
         val isEnabled = locManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
         Log.d("MyLog", "checkLocationEnabled: $isEnabled")
         if (!isEnabled) {
-            DialogManager.showYesNoDialog(activity as AppCompatActivity, "Dialog",
-                "Message", myClickListener)
+            DialogManager.showYesNoDialog(
+                activity as AppCompatActivity, "Dialog",
+                "Message", myClickListener
+            )
         } else {
             showToast("Loc enabled")
         }
@@ -440,8 +591,16 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
         if (permissionRequestList.isNotEmpty()) {
             if (permissionRequestList.size == 1) {
                 pLauncher.launch(arrayOf(permissionRequestList[0]))
+//                myLat = mLocOverlay.myLocation.latitude
+//                myLon = mLocOverlay.myLocation.longitude
+//
+//                nearbyPlace()
             } else if (permissionRequestList.size > 1) {
                 pLauncher.launch(arrayOf(permissionRequestList[0]))
+//                myLat = mLocOverlay.myLocation.latitude
+//                myLon = mLocOverlay.myLocation.longitude
+//
+//                nearbyPlace()
 //                pLauncher2.launch(arrayOf(permissionRequestList[1]))
             }
         } else {
@@ -454,6 +613,7 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
         super.onResume()
         requestPermissions()
     }
+
     private fun settingsOsm() {
         Configuration.getInstance().load(
             activity as AppCompatActivity,
@@ -465,10 +625,47 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
     private fun initOsm() = with(binding) {
         map.controller.setZoom(20.0)
         val mLocProvider = GpsMyLocationProvider(activity)
-        val mLocOverlay = MyLocationNewOverlay(mLocProvider, map)
-        mLocOverlay.enableMyLocation()
-        mLocOverlay.runOnFirstFix {
+        mLocOverlay = MyLocationNewOverlay(mLocProvider, map)
+        mLocOverlay?.enableMyLocation()
+        mLocOverlay?.runOnFirstFix {
+            val myLocationGeoPoint = mLocOverlay?.myLocation
             map.overlays.add(mLocOverlay)
+            myLat = myLocationGeoPoint?.latitude
+            myLon = myLocationGeoPoint?.longitude
+            Log.d("LOCATION", "Широта: $myLat, Долгота: $myLon")
+
+        }
+        Log.d("MY_TAG", "mLocOverlay2: ${mLocProvider.locationSources}")
+//        val res = mLocOverlay.myLocation
+//        nearbyPlace()
+    }
+
+    private fun nearbyPlace() {
+        // Предположим, у вас есть текущее местоположение пользователя
+
+        val locManager =
+            (activity as AppCompatActivity).getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        var currentLocation: Location? = Location("")
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            currentLocation =
+                locManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+            Log.d("TAG", "currentLocation: $currentLocation")
+        }
+
+        val distance = getDistanceFromLatLonInKm(myLat!!, myLon!!, 55.784181, 37.711021)
+        Log.d("MY_TAG", "distance: ${distance} ")
+
+        if (distance <= 20) {
+            Toast.makeText(requireContext(), "Рядом!", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(requireContext(), "Не рядом!", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -505,6 +702,28 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
 //            pLauncher.launch(permissionsToRequest.toTypedArray())
 //        }
 //    }
+
+    fun deg2rad(deg: Double): Double {
+        return deg * (PI / 180)
+    }
+
+    private fun getDistanceFromLatLonInKm(
+        lat1: Double,
+        lon1: Double,
+        lat2: Double,
+        lon2: Double
+    ): Double {
+        val radius = 6.378
+        val dLat = deg2rad(lat2 - lat1)
+        val dLon = deg2rad(lon2 - lon1)
+        val a =
+            sin(dLat / 2) * sin(dLat / 2) +
+                    cos(deg2rad(lat1)) * cos(deg2rad(lat2)) *
+                    sin(dLon / 2) * sin(dLon / 2)
+        val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+        val d = radius * c
+        return d
+    }
 
     override fun onDestroyView() {
         if (tts != null) {

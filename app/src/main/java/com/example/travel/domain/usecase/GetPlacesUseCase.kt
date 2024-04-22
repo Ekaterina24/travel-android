@@ -6,7 +6,7 @@ import com.example.travel.domain.repository.PlaceRepository
 class GetPlacesUseCase(
     private val repository: PlaceRepository
 ) {
-    suspend operator fun invoke(cityId: Int): List<PlaceModel> {
-        return repository.getPlaces(cityId)
+    suspend operator fun invoke(cityId: Int, search: String, category: String): List<PlaceModel> {
+        return repository.getPlaces(cityId, search, category)
     }
 }

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".presentation.places.MapFragment"
     tools:ignore="MissingClass">
 
@@ -27,35 +27,84 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ScrollView
+
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvCategoryList"
+            tools:listitem="@layout/category_item"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/spinnerCity" />
+
+    <LinearLayout
         android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="300dp"
+        android:orientation="vertical"
         android:visibility="gone"
-        tools:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
+        <ScrollView
+            android:id="@+id/detailContainer"
+            android:layout_width="match_parent"
+            android:layout_height="300dp"
+            android:background="@color/gray"
+            android:visibility="gone">
+
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/gray"
+                android:layout_height="0dp"
                 android:orientation="vertical"
-                android:padding="20dp"
-
+                android:paddingHorizontal="20dp"
+                android:paddingTop="10dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 tools:visibility="visible">
 
-                <TextView
-                    android:id="@+id/name"
-                    android:layout_width="wrap_content"
+                <com.google.android.flexbox.FlexboxLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Название"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    app:alignItems="center"
+                    app:justifyContent="space_between">
+
+                    <TextView
+                        android:id="@+id/name"
+                        android:layout_width="200dp"
+                        android:layout_height="wrap_content"
+                        android:text="Название"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <ImageButton
+                            android:id="@+id/btnAddPlace"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:layout_marginStart="10dp"
+                            android:background="@color/green"
+                            android:contentDescription="add"
+                            android:src="@drawable/ic_add" />
+
+                        <ImageButton
+                            android:id="@+id/btnClose"
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:layout_marginStart="10dp"
+                            android:background="?attr/selectableItemBackground"
+                            android:contentDescription="close"
+                            android:src="@drawable/ic_close" />
+                    </LinearLayout>
+
+                </com.google.android.flexbox.FlexboxLayout>
 
                 <TextView
                     android:id="@+id/tvType"
@@ -69,7 +118,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="7dp"
-                    android:text="Адрес"/>
+                    android:text="Адрес" />
 
                 <TextView
                     android:id="@+id/tvDesc"
@@ -84,7 +133,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="7dp"
-                    android:text="Аудио"/>
+                    android:text="Аудио" />
 
 
                 <androidx.recyclerview.widget.RecyclerView
@@ -92,15 +141,67 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                    app:layout_constraintBottom_toBottomOf="@+id/container"
-                    app:layout_constraintEnd_toEndOf="@+id/container"
-                    app:layout_constraintStart_toStartOf="@+id/container"
-                    app:layout_constraintTop_toBottomOf="@id/audio"
                     tools:listitem="@layout/audio_item" />
-
 
             </LinearLayout>
 
-    </ScrollView>
+        </ScrollView>
+
+        <LinearLayout
+            android:id="@+id/placeListContainer"
+            android:orientation="vertical"
+            android:background="@color/gray"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="300dp">
+
+            <com.google.android.flexbox.FlexboxLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:alignItems="center"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="10dp"
+                app:justifyContent="space_between">
+
+                <TextView
+                    android:id="@+id/tvList"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Список мест"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <ImageButton
+                    android:id="@+id/btnCloseList"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_marginStart="10dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:contentDescription="close"
+                    android:src="@drawable/ic_close" />
+
+            </com.google.android.flexbox.FlexboxLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvPlaceList"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                tools:listitem="@layout/place_item" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/btnPlaceList"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="24dp"
+        android:background="@color/green"
+        android:src="@drawable/ic_list"
+        app:layout_constraintBottom_toTopOf="@id/container"
+        app:layout_constraintEnd_toEndOf="parent" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

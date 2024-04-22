@@ -9,6 +9,7 @@ import com.example.travel.data.network.dto.TokenDTO
 import com.example.travel.data.network.dto.TripDTO
 import com.example.travel.data.network.dto.TripListDTO
 import com.example.travel.data.network.dto.UserDTO
+import com.example.travel.domain.model.CategoryModel
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -22,7 +23,7 @@ import retrofit2.http.Query
 
 //const val BASE_URL = "https://192.168.1.28:3000/"
 //const val BASE_URL = "http://10.0.2.2:3000/"
-const val BASE_URL = "https://a6eb-188-66-39-117.ngrok-free.app/"
+const val BASE_URL = "https://7827-89-113-145-150.ngrok-free.app/"
 
 interface TravelApi {
     @POST("auth/register")
@@ -32,7 +33,14 @@ interface TravelApi {
     suspend fun login(@Body user: LoginDTO): TokenDTO
 
     @GET("place")
-    suspend fun getPlaces(@Query("cityId") cityId: Int): List<PlaceDTO>
+    suspend fun getPlaces(
+        @Query("cityId") cityId: Int,
+        @Query("search") search: String,
+        @Query("category") category: String,
+    ): List<PlaceDTO>
+
+    @GET("place/category")
+    suspend fun getCategoryList(): List<CategoryModel>
 
     @GET("place/{id}")
     suspend fun getPlaceById(@Path("id") id: String): PlaceDTO

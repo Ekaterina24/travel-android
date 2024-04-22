@@ -47,7 +47,6 @@ class WeatherFragment : Fragment() {
         return binding.root
     }
 
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -58,9 +57,9 @@ class WeatherFragment : Fragment() {
             val name = sharedPreferences.getStringValue("city")
 
 
-            addCity.setOnClickListener {
-                findNavController().navigate(R.id.action_weatherFragment_to_cityFragment)
-            }
+//            addCity.setOnClickListener {
+//                findNavController().navigate(R.id.action_weatherFragment_to_cityFragment)
+//            }
 
             //current Temp
             cityTxt.text = name

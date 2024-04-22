@@ -1,58 +1,49 @@
 package com.example.travel.presentation.places
 
-import android.content.Context
-import android.content.Intent
-import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.core.os.bundleOf
-import androidx.navigation.Navigation.findNavController
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.travel.R
-import com.example.travel.databinding.PlaceItemBinding
-import com.example.travel.domain.model.PlaceModel
+import com.example.travel.databinding.CategoryItemBinding
+import com.example.travel.domain.model.CategoryModel
 
-interface PlaceActionListener {
-    fun onChoosePlace(place: PlaceModel)
+interface CategoryActionListener {
+    fun onChoosePlace(place: CategoryModel)
 
-    fun getPlaceId(id: String)
+    fun getCategory(name: String)
 }
 
-class PlaceListAdapter(
-//    private val actionListener: PlaceActionListener,
+class CategoryListAdapter(
+    private val actionListener: CategoryActionListener,
 ):
-    ListAdapter<PlaceModel, PlaceListAdapter.PlaceListViewHolder>(callback),
+    ListAdapter<CategoryModel, CategoryListAdapter.CategoryListViewHolder>(callback),
     View.OnClickListener
 {
 
-    class PlaceListViewHolder(val binding: PlaceItemBinding)
+    class CategoryListViewHolder(val binding: CategoryItemBinding)
         : RecyclerView.ViewHolder(binding.root)
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PlaceListViewHolder {
-        val binding = PlaceItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryListViewHolder {
+        val binding = CategoryItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         binding.root.setOnClickListener(this)
-        binding.imageButton.setOnClickListener(this)
-        return PlaceListViewHolder(binding)
+        return CategoryListViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: PlaceListViewHolder, position: Int) {
-        val placeItem = getItem(position)
+    override fun onBindViewHolder(holder: CategoryListViewHolder, position: Int) {
+        val categoryItem = getItem(position)
 //        holder.binding.imageView.load(placeItem.imageUrl)
-        holder.binding.tvName.text = placeItem.name
-        holder.binding.tvType.text = placeItem.typePlace
-        holder.itemView.tag = placeItem
-        holder.binding.imageButton.tag = placeItem
+        holder.binding.tvCategory.text = categoryItem.category
+        holder.itemView.tag = categoryItem
 //        holder.itemView.setOnClickListener {
 //            Log.d("MY_TAG", "onClick: item")
 //        }
         holder.itemView.setOnClickListener {
-            val bundle = bundleOf("key" to placeItem.id)
+            actionListener.getCategory(categoryItem.category)
+//            val bundle = bundleOf("category" to categoryItem.category)
 //            actionListener.getPlaceId(placeItem.id)
 //                getPlace.getPlaceId(placeItem.id)
 //                val intent = Intent(context, PlaceDetailFragment::class.java)
@@ -63,7 +54,7 @@ class PlaceListAdapter(
     }
 
     override fun onClick(v: View) {
-        val place = v.tag as PlaceModel
+        val place = v.tag as CategoryModel
         when (v.id) {
             R.id.imageButton -> {
 //                actionListener.onChoosePlace(place)
@@ -72,12 +63,12 @@ class PlaceListAdapter(
     }
 }
 
-private val callback = object: DiffUtil.ItemCallback<PlaceModel>() {
-    override fun areItemsTheSame(oldItem: PlaceModel, newItem: PlaceModel): Boolean {
-        return oldItem.id == newItem.id
+private val callback = object: DiffUtil.ItemCallback<CategoryModel>() {
+    override fun areItemsTheSame(oldItem: CategoryModel, newItem: CategoryModel): Boolean {
+        return oldItem.category == newItem.category
     }
 
-    override fun areContentsTheSame(oldItem: PlaceModel, newItem: PlaceModel): Boolean {
+    override fun areContentsTheSame(oldItem: CategoryModel, newItem: CategoryModel): Boolean {
         return oldItem == newItem
     }
 }
@@ -163,7 +154,7 @@ private val callback = object: DiffUtil.ItemCallback<PlaceModel>() {
 ////    }
 //
 //    override fun onClick(v: View) {
-//        val place = v.tag as PlaceModel
+//        val place = v.tag as CategoryModel
 //        when (v.id) {
 ////            R.id.imageButton -> {
 ////                actionListener.onChoosePlace(place)
@@ -172,12 +163,12 @@ private val callback = object: DiffUtil.ItemCallback<PlaceModel>() {
 //    }
 //}
 //
-//val callback = object : DiffUtil.ItemCallback<PlaceModel>() {
-//    override fun areItemsTheSame(oldItem: PlaceModel, newItem: PlaceModel): Boolean {
+//val callback = object : DiffUtil.ItemCallback<CategoryModel>() {
+//    override fun areItemsTheSame(oldItem: CategoryModel, newItem: CategoryModel): Boolean {
 //        return oldItem.id == newItem.id
 //    }
 //
-//    override fun areContentsTheSame(oldItem: PlaceModel, newItem: PlaceModel): Boolean {
+//    override fun areContentsTheSame(oldItem: CategoryModel, newItem: CategoryModel): Boolean {
 //        return oldItem == newItem
 //    }
 //}
