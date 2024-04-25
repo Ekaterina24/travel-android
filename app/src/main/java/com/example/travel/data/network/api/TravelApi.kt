@@ -23,7 +23,7 @@ import retrofit2.http.Query
 
 //const val BASE_URL = "https://192.168.1.28:3000/"
 //const val BASE_URL = "http://10.0.2.2:3000/"
-const val BASE_URL = "https://7827-89-113-145-150.ngrok-free.app/"
+const val BASE_URL = "https://9eba-188-66-38-126.ngrok-free.app/"
 
 interface TravelApi {
     @POST("auth/register")

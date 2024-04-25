@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:padding="10dp"
+    android:layout_height="64dp">
+
+    <ImageView
+        android:id="@+id/img_song"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:src="@mipmap/ic_launcher"
+        android:scaleType="centerCrop"
+        android:layout_centerVertical="true" />
+    <LinearLayout
+        android:id="@+id/lnlay_infor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/img_song"
+        android:layout_marginEnd="10dp"
+        android:layout_toStartOf="@id/img_pre"
+        android:layout_marginStart="10dp"
+        android:orientation="vertical"
+        android:layout_centerVertical="true">
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Name song"
+            android:textColor="@color/black"
+            android:textSize="14sp" />
+        <TextView
+            android:id="@+id/tv_single"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Name song"
+            android:textColor="@color/material_on_background_disabled"
+            android:textSize="14sp" />
+    </LinearLayout>
+    <ImageView
+        android:id="@+id/img_clear"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:src="@drawable/ic_close"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true" />
+
+    <ImageView
+        android:id="@+id/img_pre"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:src="@drawable/btn_moreinfo"
+        android:layout_toStartOf="@id/img_play_pause"
+        android:layout_centerVertical="true" />
+    <ImageView
+        android:id="@+id/img_next"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:src="@drawable/next"
+        android:layout_toStartOf="@id/img_clear"
+        android:layout_centerVertical="true" />
+    <ImageView
+        android:id="@+id/img_play_pause"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:src="@drawable/pause"
+        android:layout_toStartOf="@id/img_next"
+        android:layout_centerVertical="true" />
+</RelativeLayout>

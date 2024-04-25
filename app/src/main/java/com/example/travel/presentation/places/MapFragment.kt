@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
 import android.media.MediaPlayer
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
@@ -33,6 +34,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.travel.MainActivity
 import com.example.travel.data.local.prefs.SharedPreferences
 import com.example.travel.databinding.FragmentMapBinding
 import com.example.travel.domain.model.AudioModel
@@ -43,6 +45,8 @@ import com.example.travel.presentation.auth.AuthViewModelFactory
 import com.example.travel.presentation.calendar.CalendarViewModel
 import com.example.travel.presentation.calendar.CalendarViewModelFactory
 import com.example.travel.presentation.calendar.DayListByUserAdapter
+import com.example.travel.presentation.service.AudioData
+import com.example.travel.presentation.service.AudioService
 import com.example.travel.presentation.utils.DialogManager
 import com.example.travel.presentation.utils.addPermissionToRequestedList
 import com.example.travel.presentation.utils.checkPermissionGranted
@@ -59,6 +63,7 @@ import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.gestures.RotationGestureOverlay
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
+import java.io.File
 import java.util.Locale
 import kotlin.math.PI
 import kotlin.math.atan2
@@ -95,18 +100,15 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
     private val sharedPreferences: SharedPreferences by lazy {
         SharedPreferences(requireContext())
     }
+
+    var trackFilesArrayList = ArrayList<AudioData>()
+    private lateinit var outputPath: String
+    var filePath = ""
 //    private val categoryAdapter by lazy { CategoryListAdapter(this) }
 
     private var isFineLocationPermissionGranted = false
     private var isCoarseLocationPermissionGranted = false
     private var isBackgroundLocationPermissionGranted = false
-    private var isExternalWriteStoragePermissionGranted = false
-
-    private var readPermissionGranted = false
-    private var writePermissionGranted = false
-    private var readMediaImagesPermissionGranted = false
-    private var readMediaVideoPermissionGranted = false
-    private var readMediaAudioPermissionGranted = false
 
     private lateinit var pLauncher: ActivityResultLauncher<Array<String>>
 
@@ -136,16 +138,11 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
 
         registerPermissions()
         checkLocationEnabled()
-//        pLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-//            readPermissionGranted = permissions[Manifest.permission.READ_EXTERNAL_STORAGE] ?: readPermissionGranted
-//            writePermissionGranted = permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE] ?: writePermissionGranted
-//            readMediaImagesPermissionGranted = permissions[Manifest.permission.READ_MEDIA_IMAGES] ?: readMediaImagesPermissionGranted
-//            readMediaVideoPermissionGranted = permissions[Manifest.permission.READ_MEDIA_VIDEO] ?: readMediaVideoPermissionGranted
-//            readMediaAudioPermissionGranted = permissions[Manifest.permission.READ_MEDIA_AUDIO] ?: readMediaAudioPermissionGranted
-//
-//
-//        }
-//        updateOrRequestPermissions()
+        startAudioService()
+
+        checkPermission()
+        requestPermission()
+
         val token = "Bearer ${sharedPreferences.getStringValue("token")}"
         viewModel.getCityList()
         Log.d("MY_TAG", "token: ${sharedPreferences.getStringValue("token")}")
@@ -320,7 +317,7 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
             }
         }
 
-        binding.rvAudioList.adapter = rvAdapter
+//        binding.rvAudioList.adapter = rvAdapter
 
         binding.btnPlaceList.setOnClickListener {
             binding.apply {
@@ -451,6 +448,7 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
                             viewModel.audioListByPlace.collect { audioList ->
                                 withContext(Dispatchers.Main) {
 //                                binding.audio.text = audioList.toString()
+                                    Log.d("MY_TAG", "audioList: ${audioList.isNotEmpty()}")
                                     if (audioList.isNotEmpty())
                                         text = audioList[0].desc
                                 }
@@ -467,6 +465,128 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
         }
 
     }
+
+    private fun startAudioService() {
+        val mIntent = Intent(requireContext(),AudioService::class.java)
+        poppulateFiles() //.mp3
+        mIntent.putExtra("tracklist", trackFilesArrayList)
+        binding.fStart.setOnClickListener(){
+            activity?.startService(mIntent)
+        }
+        binding.fStop.setOnClickListener(){
+            activity?.stopService(mIntent)
+        }
+    }
+
+    private companion object {
+        //PERMISSION request constant, assign any value
+        private const val STORAGE_PERMISSION_CODE = 100
+        private const val TAG = "PERMISSION_TAG"
+    }
+
+    private fun checkPermission(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            //Android is 11(R) or above
+            Environment.isExternalStorageManager()
+        } else {
+            //Android is below 11(R)
+            val write =
+                ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            val read =
+                ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE)
+            write == PackageManager.PERMISSION_GRANTED && read == PackageManager.PERMISSION_GRANTED
+        }
+    }
+
+    private fun requestPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            //Android is 11(R) or above
+            try {
+                Log.d(TAG, "requestPermission: try")
+                val intent = Intent()
+                intent.action = Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION
+                val uri = Uri.fromParts("package", activity?.packageName, null)
+                intent.data = uri
+                storageActivityResultLauncher.launch(intent)
+            } catch (e: Exception) {
+                Log.e(TAG, "requestPermission: ", e)
+                val intent = Intent()
+                intent.action = Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION
+                storageActivityResultLauncher.launch(intent)
+            }
+        } else {
+            //Android is below 11(R)
+            ActivityCompat.requestPermissions(
+                (activity as MainActivity),
+                arrayOf(
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+                ),
+                STORAGE_PERMISSION_CODE
+            )
+        }
+    }
+
+    private val storageActivityResultLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            Log.d(TAG, "storageActivityResultLauncher: ")
+            //here we will handle the result of our intent
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                //Android is 11(R) or above
+                if (Environment.isExternalStorageManager()) {
+                    //Manage External Storage Permission is granted
+                    Log.d(
+                        TAG,
+                        "storageActivityResultLauncher: Manage External Storage Permission is granted"
+                    )
+//                    createFolder()
+                } else {
+                    //Manage External Storage Permission is denied....
+                    Log.d(
+                        TAG,
+                        "storageActivityResultLauncher: Manage External Storage Permission is denied...."
+                    )
+//                    toast("Manage External Storage Permission is denied....")
+                }
+            } else {
+                //Android is below 11(R)
+            }
+        }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == STORAGE_PERMISSION_CODE) {
+            if (grantResults.isNotEmpty()) {
+                //check each permission if granted or not
+                val write = grantResults[0] == PackageManager.PERMISSION_GRANTED
+                val read = grantResults[1] == PackageManager.PERMISSION_GRANTED
+                if (write && read) {
+                    //External Storage Permission granted
+                    Log.d("MY_TAG", "onRequestPermissionsResult: External Storage Permission granted")
+//                    createFolder()
+                } else {
+                    //External Storage Permission denied...
+                    Log.d("MY_TAG", "onRequestPermissionsResult: External Storage Permission denied...")
+//                    toast("External Storage Permission denied...")
+                }
+            }
+        }
+    }
+
+    private fun poppulateFiles() {
+        val path = Environment.getExternalStorageDirectory()
+        val file = File(path, "tts_output.wav")
+        outputPath = file.absolutePath
+        filePath = "${Environment.getExternalStorageDirectory()}/tts_output.wav"
+        trackFilesArrayList.add(AudioData(
+            filePath
+        ))
+    }
+
 
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
