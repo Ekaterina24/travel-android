@@ -10,6 +10,7 @@ import android.graphics.BitmapFactory
 import android.media.MediaPlayer
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import android.widget.ImageButton
 import android.widget.RemoteViews
 import android.widget.SeekBar
@@ -17,6 +18,11 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.example.travel.MainActivity
 import com.example.travel.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.IOException
 
 class AudioService : Service() {
     val TAG = "TAG"
@@ -49,7 +55,13 @@ class AudioService : Service() {
             trackList = _trackList
         }
         if (countCallCommand == 0) {
+            Log.d(TAG, "onStartCommand: startMusic")
             startMusic(trackList!![positNow].media)
+        }
+        else {
+            Log.d(TAG, "onStartCommand: nextMusic")
+            nextMusic()
+
         }
         countCallCommand++
 
@@ -65,7 +77,6 @@ class AudioService : Service() {
 
 
     override fun onDestroy() {
-
         if (mediaPlayer != null) {
             mediaPlayer!!.release()
             mediaPlayer = null
@@ -78,20 +89,10 @@ class AudioService : Service() {
     }
 
     private fun startMusic(filePath: String) {
-//        mediaPlayer = MediaPlayer.create(this, media)
-//        mediaPlayer?.isLooping=true
-//        mediaPlayer?.start()
         mediaPlayer = MediaPlayer().apply {
-            mediaPlayer?.let {
-//                if (!it.isPlaying) {
-                    setDataSource(filePath)
-                    prepare()
-                    isLooping=true
-                    start()
-//                } else {
-//                    pause()
-//                }
-            }
+            setDataSource(filePath)
+            prepare()
+            start()
         }
     }
 
@@ -107,14 +108,14 @@ class AudioService : Service() {
     }
 
     private fun nextMusic() {
-        if (positNow == trackList!!.size - 1) {
-            pauseMusic()
-        } else {
-            positNow++
+//        if (positNow == trackList!!.size - 1) {
+//            pauseMusic()
+//        } else {
+//            positNow++
             mediaPlayer!!.release()
             startMusic(trackList!![positNow].media)
             sendNoti(trackList!!, positNow)
-        }
+//        }
     }
 
     private fun preMusic() {
@@ -147,9 +148,9 @@ class AudioService : Service() {
     }
 
     private fun getPendingIntent(context: Context, action: Int): PendingIntent {
-        val intent = Intent(this, AudioReceiver::class.java)
+        val intent = Intent(context, AudioReceiver::class.java)
         intent.putExtra("action_music", action)
-        return PendingIntent.getBroadcast(this, action, intent, PendingIntent.FLAG_IMMUTABLE)
+        return PendingIntent.getBroadcast(context, action, intent, PendingIntent.FLAG_IMMUTABLE)
     }
 
     private fun creatChannelNoti() {
@@ -217,6 +218,6 @@ class AudioService : Service() {
             .setCustomContentView(remoteview)
             .setSound(null)
             .build()
-        this.startForeground(1, builder)
+        startForeground(1, builder)
     }
 }

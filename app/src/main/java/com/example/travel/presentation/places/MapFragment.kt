@@ -15,6 +15,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.Settings
 import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -64,6 +65,7 @@ import org.osmdroid.views.overlay.gestures.RotationGestureOverlay
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 import java.io.File
+import java.io.FileOutputStream
 import java.util.Locale
 import kotlin.math.PI
 import kotlin.math.atan2
@@ -101,6 +103,8 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
         SharedPreferences(requireContext())
     }
 
+    private lateinit var mIntent: Intent
+
     var trackFilesArrayList = ArrayList<AudioData>()
     private lateinit var outputPath: String
     var filePath = ""
@@ -121,6 +125,7 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
     var text = ""
 
     private var mLocOverlay: MyLocationNewOverlay? = null
+    private var flag = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -397,6 +402,14 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
                         binding.container.visibility = View.VISIBLE
                         binding.detailContainer.visibility = View.VISIBLE
 
+                        if (flag) {
+                            activity?.stopService(mIntent)
+                            flag = false
+                        }
+
+//                        clearFileContents(filePath)
+
+
                         viewModel.getAudioListByPlace(place.id)
                         viewModel.getPlaceById(place.id)
 
@@ -411,6 +424,7 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
                                         if (currentPlace.description != " ") {
                                             tvDesc.visibility = View.VISIBLE
                                             tvDesc.text = currentPlace.description
+                                            text = currentPlace.description
                                         } else {
                                             tvDesc.visibility = View.GONE
                                         }
@@ -449,8 +463,9 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
                                 withContext(Dispatchers.Main) {
 //                                binding.audio.text = audioList.toString()
                                     Log.d("MY_TAG", "audioList: ${audioList.isNotEmpty()}")
-                                    if (audioList.isNotEmpty())
-                                        text = audioList[0].desc
+//                                    if (audioList.isNotEmpty())
+//                                        text = audioList[0].desc
+//                                    Log.d(TAG, "text: $text")
                                 }
                             }
                         }
@@ -466,14 +481,32 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
 
     }
 
+    fun clearFileContents(filePath: String) {
+        try {
+            val file = File(filePath)
+
+            if (file.exists()) {
+                // Очищаем содержимое файла, открывая 'FileOutputStream' с параметром 'false'
+                val fileOutputStream = FileOutputStream(file, false)
+                fileOutputStream.close()
+                // Файл теперь пуст
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // Обработать исключение, возможно, сообщить пользователю
+        }
+    }
+
     private fun startAudioService() {
-        val mIntent = Intent(requireContext(),AudioService::class.java)
+        mIntent = Intent(requireContext(),AudioService::class.java)
         poppulateFiles() //.mp3
         mIntent.putExtra("tracklist", trackFilesArrayList)
         binding.fStart.setOnClickListener(){
+            flag = true
             activity?.startService(mIntent)
         }
         binding.fStop.setOnClickListener(){
+            flag = false
             activity?.stopService(mIntent)
         }
     }
@@ -582,6 +615,7 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
         val file = File(path, "tts_output.wav")
         outputPath = file.absolutePath
         filePath = "${Environment.getExternalStorageDirectory()}/tts_output.wav"
+        trackFilesArrayList.clear()
         trackFilesArrayList.add(AudioData(
             filePath
         ))
@@ -590,13 +624,38 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
 
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
-            val result = tts!!.setLanguage(Locale("ru"))
+            tts?.language = Locale("ru")
 
-            if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                Log.e("TTS", "The Language not supported!")
-            } else {
-//                binding.btnAudio.isEnabled = true
+            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                viewModel.place.collect { currentPlace ->
+                    withContext(Dispatchers.Main) {
+                        val filename = "UniqueFileName" // Уникальное имя для этой операции
+
+                        // Ассоциируем имя файла с результатом TTS
+                        val params = Bundle()
+                        params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "")
+
+                        // Синтез речи с записью в файл
+                        tts?.synthesizeToFile(currentPlace.description, params, File(outputPath), filename)
+
+                        // Установка слушателя для отслеживания успешного сохранения
+                        tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                            override fun onStart(utteranceId: String?) {
+                                // Called when the TTS starts speaking
+                            }
+
+                            override fun onDone(utteranceId: String?) {
+                                // Called when the TTS has done speaking
+                            }
+
+                            override fun onError(utteranceId: String?) {
+                                // Called on an error during TTS
+                            }
+                        })
+                    }
+                }
             }
+
         }
     }
 
@@ -604,10 +663,8 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
         val myHashRender: HashMap<String?, String?> = HashMap<String?, String?>()
         val wakeUpText = "Are you up yet?"
         val rootDirName = Environment.getExternalStorageDirectory().absolutePath + "/file.wav"
-//        val dirName = "$rootDirName/Travel/audio"
         myHashRender[TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID] = wakeUpText
         tts?.synthesizeToFile(wakeUpText, myHashRender, rootDirName)
-//        tts!!.speak(text, TextToSpeech.QUEUE_FLUSH, null, "")
     }
 
     private fun registerPermissions() {
