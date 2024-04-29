@@ -2,9 +2,13 @@ package com.example.travel.presentation.places
 
 import android.Manifest
 import android.R
+import android.content.BroadcastReceiver
+import android.content.ComponentName
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.IntentFilter
+import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationManager
@@ -13,6 +17,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
+import android.os.IBinder
 import android.provider.Settings
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
@@ -22,6 +28,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.ImageButton
+import android.widget.SeekBar
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -33,6 +41,7 @@ import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.travel.MainActivity
@@ -54,6 +63,7 @@ import com.example.travel.presentation.utils.checkPermissionGranted
 import com.example.travel.presentation.utils.showToast
 import com.example.travel.presentation.weather.ForecastAdapter
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.osmdroid.bonuspack.clustering.RadiusMarkerClusterer
@@ -96,6 +106,12 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
     private var myLat: Double? = 0.0
     private var myLon: Double? = 0.0
 
+    lateinit var runnable: Runnable
+    private var handler = Handler()
+
+    private var locModel: Int = 0
+    private var curPos: Int = 0
+
 //    private val sharedPreferences: SharedPreferences =
 //        SharedPreferences(activity?.applicationContext)
 
@@ -136,6 +152,53 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
         return binding.root
     }
 
+    private var service: AudioService? = null
+    private var isBound = false
+
+    private val connection = object : ServiceConnection {
+        override fun onServiceConnected(className: ComponentName, serviceBinder: IBinder) {
+            // Мы привязаны к сервису
+            val binder = serviceBinder as AudioService.LocalBinder
+            service = binder.getService()
+            isBound = true
+            // Теперь можно вызывать методы сервиса
+//            initSeekBar()
+        }
+
+        override fun onServiceDisconnected(arg0: ComponentName) {
+            isBound = false
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        // Привязываемся к сервису
+        Intent(activity, AudioService::class.java).also { intent ->
+            activity?.bindService(intent, connection, Context.BIND_AUTO_CREATE)
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (isBound) {
+            // Отключаемся от сервиса
+            activity?.unbindService(connection)
+            isBound = false
+        }
+    }
+
+    fun callPauseOnService() {
+        if (isBound) {
+            service?.pauseMusic()
+        }
+    }
+
+    fun clear() {
+        if (isBound) {
+            service?.clearMusic()
+        }
+    }
+
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -147,6 +210,7 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
 
         checkPermission()
         requestPermission()
+        registerLocReceiver()
 
         val token = "Bearer ${sharedPreferences.getStringValue("token")}"
         viewModel.getCityList()
@@ -251,6 +315,40 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
                 rvCategoryAdapter.submitList(it)
             }
         }
+
+//        binding.linearProgressBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+//            override fun onProgressChanged(p0: SeekBar?, pos: Int, changed: Boolean) {
+//                if (changed) {
+//                    service?.seekTo(pos)
+//                    Log.d(TAG, "onProgressChanged: $pos")
+//                }
+//            }
+//
+//            override fun onStartTrackingTouch(p0: SeekBar?) {
+////                TODO("Not yet implemented")
+//            }
+//
+//            override fun onStopTrackingTouch(p0: SeekBar?) {
+////                TODO("Not yet implemented")
+//            }
+//
+//        })
+
+//        runnable = Runnable {
+//            binding.linearProgressBar.progress = service?.getCurrentPosition()
+//            handler.postDelayed(runnable, 1000)
+//        }
+//        handler.postDelayed(runnable, 1000)
+
+//        mediaPlayer?.let {
+//            it.sey
+//        }
+//        service?.mediaPlayer?.setOnCompletionListener {
+//            findViewById<ImageButton>(R.id.play_btn).setImageResource(R.drawable.ic_play)
+////            clearFileContents(filePath)
+//        }
+
+
 //        val rvAdapter = PlaceListAdapter(
 //            object : PlaceActionListener {
 //                override fun onChoosePlace(place: PlaceModel) {
@@ -303,6 +401,7 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
 //                rvAdapter.submitList(it)
 //            }
 //        }
+
 
         val rvAdapter = AudioListByPlaceAdapter(
             object : AudioActionListener {
@@ -392,6 +491,15 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
 
 
                     marker.setOnMarkerClickListener { _, _ ->
+//                        activity?.stopService(mIntent)
+//                        callPauseOnService()
+//                        clear()
+                        service?.stopPlayer()
+                        binding.linearProgressBar.progress = 0
+//                        if (isBound) {
+//                            service?.clearMusic()
+//                        }
+
                         binding.map.controller.setZoom(19.0)
                         binding.map.controller.animateTo(
                             GeoPoint(
@@ -402,12 +510,12 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
                         binding.container.visibility = View.VISIBLE
                         binding.detailContainer.visibility = View.VISIBLE
 
-                        if (flag) {
-                            activity?.stopService(mIntent)
-                            flag = false
-                        }
+//                        if (flag) {
+//                            Log.d(TAG, "flag: ${flag}")
+//                            flag = false
+//                        }
 
-//                        clearFileContents(filePath)
+                        clearFileContents(filePath)
 
 
                         viewModel.getAudioListByPlace(place.id)
@@ -479,6 +587,67 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
             }
         }
 
+
+
+    }
+
+    val receiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == AudioService.DURATION) {
+                locModel = intent.getIntExtra(AudioService.DURATION, 0)
+                curPos = intent.getIntExtra(AudioService.CURPOS, 0)
+                Log.d("MY_TAG", "Main Fragment DURATION: ${locModel}")
+                Log.d("MY_TAG", "Main Fragment curPos: ${curPos}")
+                binding.linearProgressBar.max = locModel
+                binding.linearProgressBar.progress = curPos
+//                viewModel.locationUpdates.value = locModel
+            }
+        }
+    }
+
+    private fun registerLocReceiver() {
+        val locFilter = IntentFilter(AudioService.DURATION)
+        LocalBroadcastManager.getInstance(activity as AppCompatActivity)
+            .registerReceiver(receiver, locFilter)
+    }
+
+    private fun initSeekBar() {
+        val seekBar = binding.linearProgressBar
+//        seekBar.max = if (isBound) service?.getDuration() ?: 0 else 0
+//        seekBar.max = locModel
+        Log.d(TAG, "initSeekBar: ${seekBar.max}")
+
+        seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(p0: SeekBar?, pos: Int, changed: Boolean) {
+                if (changed && isBound) {
+                    Log.d(TAG, "onProgressChanged: $pos")
+                    service?.seekTo(pos)
+
+                }
+            }
+
+            override fun onStartTrackingTouch(p0: SeekBar?) {
+                // Опционально: остановить автообновление SeekBar при перетаскивании
+            }
+
+            override fun onStopTrackingTouch(p0: SeekBar?) {
+                // Опционально: возобновить автообновление SeekBar после отпускания
+            }
+        })
+
+        // Запуск Relay для обновления SeekBar каждую секунду
+        val runnable = object : Runnable {
+            override fun run() {
+                Log.d(TAG, "curPos2: ${seekBar.max} ${seekBar.progress}")
+//                Log.d(TAG, "curPos2: ${seekBar.progress}")
+//                if (isBound) {
+
+                    seekBar.progress = curPos
+//                }
+                handler.postDelayed(this, 1000)
+            }
+        }
+        handler.postDelayed(runnable, 1000)
     }
 
     fun clearFileContents(filePath: String) {
@@ -498,16 +667,19 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
     }
 
     private fun startAudioService() {
-        mIntent = Intent(requireContext(),AudioService::class.java)
+        mIntent = Intent(requireContext(), AudioService::class.java)
         poppulateFiles() //.mp3
         mIntent.putExtra("tracklist", trackFilesArrayList)
+//        activity?.startService(mIntent)
         binding.fStart.setOnClickListener(){
             flag = true
             activity?.startService(mIntent)
+            initSeekBar()
         }
         binding.fStop.setOnClickListener(){
             flag = false
-            activity?.stopService(mIntent)
+//            activity?.stopService(mIntent)
+            callPauseOnService()
         }
     }
 
@@ -616,6 +788,7 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
         outputPath = file.absolutePath
         filePath = "${Environment.getExternalStorageDirectory()}/tts_output.wav"
         trackFilesArrayList.clear()
+        
         trackFilesArrayList.add(AudioData(
             filePath
         ))
@@ -625,10 +798,11 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
             tts?.language = Locale("ru")
-
+            Log.d(TAG, "onInit: $status")
             viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                 viewModel.place.collect { currentPlace ->
                     withContext(Dispatchers.Main) {
+//                        activity?.stopService(mIntent)
                         val filename = "UniqueFileName" // Уникальное имя для этой операции
 
                         // Ассоциируем имя файла с результатом TTS

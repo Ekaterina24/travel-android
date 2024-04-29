@@ -162,6 +162,7 @@
                         android:layout_height="wrap_content"
                         android:progressTint="@color/green"
                         android:thumb="@drawable/thumb"
+                        android:progress="0"
                         android:thumbTint="@color/green"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toStartOf="@+id/fStartStop"
