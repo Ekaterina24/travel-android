@@ -1,8 +1,10 @@
 package com.example.travel.presentation.places
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.travel.App
 import com.example.travel.data.network.AudioRepositoryImpl
 import com.example.travel.data.network.CityRepositoryImpl
 import com.example.travel.data.network.PlaceRepositoryImpl
@@ -11,19 +13,24 @@ import com.example.travel.domain.model.CategoryModel
 import com.example.travel.domain.model.CityModel
 import com.example.travel.domain.model.PlaceAudioModel
 import com.example.travel.domain.model.PlaceModel
+import com.example.travel.domain.usecase.CashCityListUseCase
 import com.example.travel.domain.usecase.GetAudioListByPlaceUseCase
 import com.example.travel.domain.usecase.GetAudioListUseCase
 import com.example.travel.domain.usecase.GetCategoryListUseCase
 import com.example.travel.domain.usecase.GetCityListUseCase
 import com.example.travel.domain.usecase.GetPlaceByIdUseCase
 import com.example.travel.domain.usecase.GetPlacesUseCase
+import com.example.travel.domain.usecase.UploadCityListUseCase
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -32,16 +39,21 @@ class PlacesViewModelFactory : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(PlacesViewModel::class.java)) {
             val repo = PlaceRepositoryImpl()
-            val repo2 = CityRepositoryImpl()
+            val repo2 = CityRepositoryImpl(App.INSTANCE)
             val repo3 = AudioRepositoryImpl()
                 val useCase1 = GetPlacesUseCase(repo)
+
             val useCase2 = GetCityListUseCase(repo2)
+//            val useCase9 = GetCityData(repo2)
+            val useCase7 = CashCityListUseCase(repo2)
+            val useCase8 = UploadCityListUseCase(repo2)
+
             val useCase3 = GetAudioListByPlaceUseCase(repo3)
             val useCase4 = GetAudioListUseCase(repo3)
             val useCase5 = GetPlaceByIdUseCase(repo)
             val useCase6 = GetCategoryListUseCase(repo)
 
-            return PlacesViewModel(useCase1, useCase2, useCase3, useCase4, useCase5, useCase6) as T
+            return PlacesViewModel(useCase1, useCase2, useCase7, useCase8, useCase3, useCase4, useCase5, useCase6, ) as T
         }
         throw IllegalArgumentException("Unknown class name")
     }
@@ -50,11 +62,14 @@ class PlacesViewModelFactory : ViewModelProvider.Factory {
 class PlacesViewModel(
     private val getPlaceListCase: GetPlacesUseCase,
     private val getCityListCase: GetCityListUseCase,
+    private val cashCityListCase: CashCityListUseCase,
+    private val uploadCityListCase: UploadCityListUseCase,
     private val getAudioListByPlaceUseCase: GetAudioListByPlaceUseCase,
     private val getAudioListUseCase: GetAudioListUseCase,
     private val getPlaceByIdUseCase: GetPlaceByIdUseCase,
     private val getCategoryListUseCase: GetCategoryListUseCase,
 ): ViewModel() {
+    private var count = 0
     private var _placeList = MutableSharedFlow<List<PlaceModel>>()
     var placeList = _placeList.asSharedFlow()
 
@@ -100,9 +115,73 @@ class PlacesViewModel(
 //        }
 //    }
 
-    fun getCityList() {
+//    fun getCityList() {
+//        viewModelScope.launch(Dispatchers.IO) {
+//            _cityList.emit(getCityListCase())
+//        }
+//    }
+
+    init {
+//        upload()
+//        viewModelScope.launch(Dispatchers.IO) {
+//            if (_cityList.first().isEmpty()) {
+//                getCityList()
+//            } else {
+//                upload()
+//            }
+//        }
+    }
+
+    fun upload() {
         viewModelScope.launch(Dispatchers.IO) {
-            _cityList.emit(getCityListCase())
+            async {
+                kotlin.runCatching {
+                    uploadCityListCase()
+                }.fold(
+                    onSuccess = { _cityList.emit(it) },
+                    onFailure = { Log.e("TAG", "${it.message}: ", it) }
+                )
+            }.await()
+
         }
+    }
+
+//    fun getCityList() {
+//        viewModelScope.launch(Dispatchers.IO) {
+//            kotlin.runCatching {
+////                if  (_cityList.first().isEmpty()) {
+////                    cashCityListCase(getCityListCase())
+////                _isLoading.value = tru
+////                }
+//                if (count == 0) {
+//                    cashCityListCase(getCityListCase())
+//                    count++
+//                }
+//                Log.d("TAG", "getCityList: $count")
+//                uploadCityListCase()
+//            }.fold(
+//                onSuccess = { _cityList.emit(it) },
+//                onFailure = { Log.e("TAG", "${it.message}: ", it) }
+//            )
+////            _isLoading.value = false
+//        }
+//
+//    }
+
+    fun getCityData() {
+        viewModelScope.launch(Dispatchers.IO) {
+            kotlin.runCatching {
+//                if  (_cityList.first().isEmpty()) {
+//                    cashCityListCase(getCityListCase())
+//                _isLoading.value = tru
+//                }
+                getCityListCase.getData()
+            }.fold(
+                onSuccess = { _cityList.emit(it) },
+                onFailure = { Log.e("TAG", "${it.message}: ", it) }
+            )
+//            _isLoading.value = false
+        }
+
     }
 }

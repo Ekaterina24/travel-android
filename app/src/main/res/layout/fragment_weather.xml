@@ -83,7 +83,7 @@ tools:context=".presentation.weather.WeatherFragment">
             android:shadowDx="1"
             android:shadowDy="1"
             android:shadowRadius="3"
-            android:text="-Km"
+            android:text="-Км"
             android:textAlignment="center"
             android:textColor="@color/white"
             android:textSize="18sp" />
@@ -95,7 +95,7 @@ tools:context=".presentation.weather.WeatherFragment">
             android:shadowDx="1"
             android:shadowDy="1"
             android:shadowRadius="3"
-            android:text="Wind"
+            android:text="Ветер"
             android:textAlignment="center"
             android:textColor="@color/white"
             android:textSize="12sp" />
@@ -217,7 +217,7 @@ tools:context=".presentation.weather.WeatherFragment">
             android:shadowDx="1"
             android:shadowDy="1"
             android:shadowRadius="3"
-            android:text="Humidity"
+            android:text="Влажность"
             android:textAlignment="center"
             android:textColor="@color/white"
             android:textSize="12sp" />
@@ -225,6 +225,55 @@ tools:context=".presentation.weather.WeatherFragment">
     </LinearLayout>
 
 </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvRecommend"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginBottom="10dp"
+        android:textSize="16sp"
+        android:shadowColor="@color/black"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:shadowRadius="3"
+        android:text="Рекомендации на день"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="@+id/progressBar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <eightbitlab.com.blurview.BlurView
+        android:id="@+id/blurViewRecommend"
+        android:layout_width="match_parent"
+        android:layout_height="143dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="200dp"
+        android:background="@drawable/forecast_bg"
+        android:visibility="gone"
+        app:blurOverlayColor="#10ffffff"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:visibility="visible">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recommendationView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </eightbitlab.com.blurview.BlurView>
 
 <eightbitlab.com.blurview.BlurView
     android:id="@+id/blurView"

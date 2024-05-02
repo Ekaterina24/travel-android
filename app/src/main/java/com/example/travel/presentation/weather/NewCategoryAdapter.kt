@@ -1,4 +1,4 @@
-package com.example.travel.presentation.places
+package com.example.travel.presentation.weather
 
 import android.view.LayoutInflater
 import android.view.View
@@ -9,28 +9,19 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.travel.R
 import com.example.travel.databinding.CategoryItemBinding
+import com.example.travel.databinding.CategoryNewItemBinding
 import com.example.travel.domain.model.CategoryModel
 import com.example.travel.presentation.weather.GetStatus
 
-interface CategoryActionListener {
-    fun onChoosePlace(place: CategoryModel)
-
-    fun getCategory(name: String)
-}
-
-class CategoryListAdapter(
-    private val actionListener: CategoryActionListener
-):
-    ListAdapter<CategoryModel, CategoryListAdapter.CategoryListViewHolder>(callback),
-    View.OnClickListener
+class NewCategoryAdapter:
+    ListAdapter<CategoryModel, NewCategoryAdapter.CategoryListViewHolder>(callback)
 {
 
-    class CategoryListViewHolder(val binding: CategoryItemBinding)
+    class CategoryListViewHolder(val binding: CategoryNewItemBinding)
         : RecyclerView.ViewHolder(binding.root)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryListViewHolder {
-        val binding = CategoryItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        binding.root.setOnClickListener(this)
+        val binding = CategoryNewItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return CategoryListViewHolder(binding)
     }
 
@@ -46,25 +37,13 @@ class CategoryListAdapter(
         holder.binding.icCategory.setImageResource(img)
         holder.binding.tvCategory.text =
         when (categoryItem.category) {
-                            "attraction" -> "Достопримечательности"
-                            "adm_div" -> "Парки"
-                            "building" -> "Музеи"
-                            "branch" -> "Еда"
+                            "attraction" -> "Отличное время посмотреть достопримечательности!"
+                            "adm_div" -> "Хороший повод погулять в парке!"
+                            "building" -> "Самое время узнать что-то новое!"
+                            "branch" -> "Время для теплых бесед в кафе!"
                             else -> ""
                         }
         holder.itemView.tag = categoryItem
-        holder.itemView.setOnClickListener {
-            actionListener.getCategory(categoryItem.category)
-        }
-    }
-
-    override fun onClick(v: View) {
-        val place = v.tag as CategoryModel
-        when (v.id) {
-            R.id.imageButton -> {
-//                actionListener.onChoosePlace(place)
-            }
-        }
     }
 }
 
@@ -77,3 +56,4 @@ private val callback = object: DiffUtil.ItemCallback<CategoryModel>() {
         return oldItem == newItem
     }
 }
+

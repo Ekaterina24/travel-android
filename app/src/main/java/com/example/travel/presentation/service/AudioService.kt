@@ -21,12 +21,14 @@ import androidx.core.os.bundleOf
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.travel.MainActivity
 import com.example.travel.R
+import com.example.travel.presentation.places.MapFragment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
@@ -78,29 +80,16 @@ class AudioService : Service() {
         if (_trackList != null) {
             trackList = _trackList
         }
-//        if (countCallCommand == 0) {
-        Log.d(TAG, "onStartCommand: $trackList")
-//            scope.launch {
-//                async{
-        startMusic(trackList!![positNow].media)
-//                }.await()
-//
-//            }
-
-//        }
-//        else {
-//            Log.d(TAG, "onStartCommand: nextMusic")
-//            nextMusic()
-//
-//        }
-        countCallCommand++
-
-
-        //create notification
-//        sendNoti(trackList!!, positNow)
 
         val actionMusic = intent!!.getIntExtra("action_mucsic_backser", 0)
-        handleActionMusic(actionMusic)
+
+        if (countCallCommand == 0) {
+            startMusic(trackList!![positNow].media)
+        } else {
+            handleActionMusic(actionMusic)
+        }
+
+        countCallCommand++
 
         return START_STICKY
     }
@@ -111,93 +100,52 @@ class AudioService : Service() {
             mediaPlayer!!.release()
             mediaPlayer = null
         }
-        Log.d(TAG, "onDestroy: ")
         super.onDestroy()
     }
 
-//    override fun onBind(intent: Intent): IBinder {
-//        TODO("Return the communication channel to the service.")
-//    }
-
-
     private fun startMusic(filePath: String) {
-        Log.d(TAG, "filePath: ${filePath}")
-//        mediaPlayer?.release()
         scope.launch {
             delay(2000)
-            mediaPlayer = MediaPlayer().apply {
-//            mediaPlayer?.let {
-
-                setDataSource(filePath)
-                prepare()
-                start()
-                playingJob = scope.launch {
-                    while (isPlaying) {
-                        sendLocData(duration, currentPosition)
-                        delay(50)
+            if (playingJob?.isActive == true && mediaPlayer?.isPlaying == false && (mediaPlayer?.currentPosition
+                    ?: 0) > 0
+            ) {
+                mediaPlayer?.start()
+            } else {
+                mediaPlayer = MediaPlayer().apply {
+                    setDataSource(filePath)
+                    prepare()
+                    start()
+                    setOnCompletionListener {
+                        launch {
+                            playingJob?.cancelAndJoin()
+                        }
                     }
-                }.also { it.invokeOnCompletion {
-                    sendLocData(0, 0)
-                } }
-
+                    playingJob = scope.launch {
+                        while ((isPlaying || currentPosition > 0) && isActive && currentPosition != duration) {
+                            sendLocData(duration, currentPosition)
+                            delay(50)
+                        }
+                    }.also {
+                        it.invokeOnCompletion { exception ->
+                            sendLocData(0, 0)
+                            sendNoti(trackList!!, positNow)
+                        }
+                    }
+                }
             }
+            sendNoti(trackList!!, positNow)
         }
 
-
-//                scope.launch {
-//                    async(Dispatchers.Main) {
-//                    }.await()
-//                }
-//            }
-
-//            try {
-//                setDataSource(filePath)
-//                // Подготавливаем асинхронно
-//                prepareAsync()
-//
-//            } catch (e: IOException) {
-//                e.printStackTrace()
-//            }
-//
-//            setOnPreparedListener { mp ->
-//                // MediaPlayer готов, можно получить duration и начать воспроизведение
-//                isPrepared = true
-//                mp.start()
-//            }
-//
-//            setOnErrorListener { mp, what, extra ->
-//                // Обработка ошибок
-//                true
-//            }
-
     }
-
-    fun getDuration(): Int {
-        return mediaPlayer?.duration ?: 0
-    }
-
-//    fun getDuration(): Int? {
-//        // Убедимся, что mediaPlayer подготовлен перед получением длительности
-//        if (isPrepared) {
-//            return mediaPlayer?.duration
-//        }
-//        return null
-//    }
 
     fun stopPlayer() {
         if (mediaPlayer?.isPlaying == true) {
             mediaPlayer?.stop()
             mediaPlayer?.reset()
-
         }
         scope.launch {
             playingJob?.cancelAndJoin()
         }
-
-    }
-
-    fun getCurrentPosition(): Int {
-        return mediaPlayer?.currentPosition ?: 0
     }
 
     fun seekTo(pos: Int) {
@@ -206,7 +154,7 @@ class AudioService : Service() {
 
     private fun handleActionMusic(action: Int) {
         when (action) {
-            ACTION_RESUME -> resumeMusic()
+            ACTION_RESUME -> startMusic(trackList!![positNow].media)
             ACTION_PAUSE -> pauseMusic()
             ACTION_CLEAR -> clearMusic()
             ACTION_PRE -> preMusic()
@@ -216,14 +164,10 @@ class AudioService : Service() {
     }
 
     private fun nextMusic() {
-//        if (positNow == trackList!!.size - 1) {
-//            pauseMusic()
-//        } else {
-//            positNow++
+        Log.d(TAG, "nextMusic: ")
         mediaPlayer!!.release()
         startMusic(trackList!![positNow].media)
         sendNoti(trackList!!, positNow)
-//        }
     }
 
     private fun preMusic() {
@@ -238,45 +182,14 @@ class AudioService : Service() {
     }
 
     fun clearMusic() {
-        mediaPlayer?.let {
-            if (it.isPlaying) {
-                stopSelf()
-            }
-        }
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
     }
 
     fun pauseMusic() {
-//        if (mediaPlayer != null && mediaPlayer?.isPlaying == true) {
-//            mediaPlayer?.pause()
-//            sendNoti(trackList!!, positNow)
-//        }
-
         mediaPlayer?.let {
             if (it.isPlaying) {
                 it.pause()
-                sendNoti(trackList!!, positNow)
-            }
-        }
-    }
-
-    private fun resumeMusic() {
-//        if (mediaPlayer != null && mediaPlayer?.isPlaying == false) {
-////            mediaPlayer?.setDataSource(filePath)
-////            mediaPlayer?.prepare()
-//            mediaPlayer?.start()
-//            sendNoti(trackList!!, positNow)
-//        }
-
-        if (mediaPlayer == null) {
-            // Если mediaPlayer == null, возможно, его следует инициализировать и запустить
-            trackList?.let {
-                if (positNow < it.size) {
-                    startMusic(it[positNow].media)
-                }
-            }
-        } else {
-            if (!(mediaPlayer?.isPlaying ?: true)) {
-                mediaPlayer?.start()
                 sendNoti(trackList!!, positNow)
             }
         }
@@ -360,6 +273,7 @@ class AudioService : Service() {
         val i = Intent(DURATION)
         i.putExtra(DURATION, duration)
         i.putExtra(CURPOS, currentPosition)
+        Log.d(TAG, "duration: $duration $currentPosition")
         LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(i)
     }
 

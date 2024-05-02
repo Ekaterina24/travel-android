@@ -3,20 +3,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/mapFragment"
-        android:title="Map"
+        android:title="Карта"
         app:showAsAction="always"
         android:icon="@drawable/ic_map"
         />
 
     <item
         android:id="@+id/calendarFragment"
-        android:title="Calendar"
+        android:title="Календарь"
         android:icon="@drawable/ic_calendar"
         />
 
     <item
         android:id="@+id/weatherFragment"
-        android:title="Weather"
+        android:title="Погода"
         android:icon="@drawable/ic_sunny"
         />
 </menu>

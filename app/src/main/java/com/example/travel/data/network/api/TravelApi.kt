@@ -20,10 +20,12 @@ import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
+import java.util.concurrent.TimeUnit
 
 //const val BASE_URL = "https://192.168.1.28:3000/"
 //const val BASE_URL = "http://10.0.2.2:3000/"
-const val BASE_URL = "https://4182-89-113-147-7.ngrok-free.app/"
+const val BASE_URL = "https://e21f-188-66-38-126.ngrok-free.app/"
+//const val BASE_URL = "http://192.168.111.242:3000/"
 
 interface TravelApi {
     @POST("auth/register")
@@ -79,6 +81,8 @@ object RetrofitInstance {
 
     private val okHttpClient = OkHttpClient.Builder()
         .addNetworkInterceptor(interceptor)
+        .connectTimeout(100, TimeUnit.SECONDS)
+        .readTimeout(100, TimeUnit.SECONDS)
         .build()
 
     private val retrofit = Retrofit.Builder()

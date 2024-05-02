@@ -9,4 +9,8 @@ class GetCityListUseCase(
     suspend operator fun invoke(): List<CityModel> {
         return repository.getCityList()
     }
+
+    suspend fun getData(): List<CityModel> {
+        return repository.getData()
+    }
 }
