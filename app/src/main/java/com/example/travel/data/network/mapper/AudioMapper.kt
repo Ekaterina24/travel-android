@@ -1,22 +1,16 @@
 package com.example.travel.data.network.mapper
 
+import com.example.travel.data.local.db.AudioItem
 import com.example.travel.data.network.dto.AudioDTO
-import com.example.travel.data.network.dto.CityDTO
-import com.example.travel.data.network.dto.PlaceDTO
 import com.example.travel.domain.model.AudioModel
-import com.example.travel.domain.model.CityModel
-import com.example.travel.domain.model.PlaceModel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
-import java.util.Date
 
 class AudioMapper {
 
     private fun mapDtoToModel(audioDto: AudioDTO) = AudioModel(
-        name = audioDto.name,
-        desc = audioDto.desc,
-        status = audioDto.status,
-        placeId = audioDto.placeId
+        id = audioDto.generatedId,
+        placeId = audioDto.placeId,
+        text = audioDto.desc,
+        status = audioDto.status
     )
 
     fun mapListDtoToList(dtoList: List<AudioDTO>): List<AudioModel> {
@@ -24,4 +18,25 @@ class AudioMapper {
         dtoList.forEach { resList.add(mapDtoToModel(it)) }
         return resList
     }
+
+
+    fun mapModelToDbModel(audioModel: AudioModel) = AudioItem(
+        id = audioModel.id,
+        placeId = audioModel.placeId,
+        text = audioModel.text,
+        status = audioModel.status
+    )
+
+    fun mapModelListToDbModelList(audioList: List<AudioModel>) =
+        audioList.map { mapModelToDbModel(it) }
+
+    fun mapDbModelToModel(audioDb: AudioItem) = AudioModel(
+        id = audioDb.id,
+        placeId = audioDb.placeId,
+        text = audioDb.text,
+        status = audioDb.status
+    )
+
+    fun mapDbModelListToModelList(audioDbList: List<AudioItem>) =
+        audioDbList.map { mapDbModelToModel(it) }
 }

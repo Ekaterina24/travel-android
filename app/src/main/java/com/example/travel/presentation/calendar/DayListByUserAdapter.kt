@@ -37,8 +37,13 @@ class DayListByUserAdapter(
     override fun onBindViewHolder(holder: DayListByUserViewHolder, position: Int) {
         val placeItem = getItem(position)
 //        holder.binding.imageView.load(placeItem.imageUrl)
+//        holder.binding.tvName.text = placeItem.name
+
         holder.binding.tvName.text = "tr:${placeItem.tripId} pl:${placeItem.placeId}"
         holder.binding.tvType.text = placeItem.dateVisiting
+
+
+
 //        holder.itemView.tag = placeItem
 //        holder.binding.imageButton.tag = placeItem
         holder.itemView.setOnClickListener {

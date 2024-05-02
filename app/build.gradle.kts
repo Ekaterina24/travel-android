@@ -75,7 +75,7 @@ dependencies {
     // Coil
     implementation("io.coil-kt:coil:2.2.2")
 
-    implementation("com.google.android.material:material:1.11.0")
+//    implementation("com.google.android.material:material:1.11.0")
 
     //osm
     implementation ("org.osmdroid:osmdroid-android:6.1.16")
@@ -92,4 +92,7 @@ dependencies {
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
+
+    //location
+    implementation("com.google.android.gms:play-services-location:21.2.0")
 }

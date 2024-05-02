@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit
 
 //const val BASE_URL = "https://192.168.1.28:3000/"
 //const val BASE_URL = "http://10.0.2.2:3000/"
-const val BASE_URL = "https://e21f-188-66-38-126.ngrok-free.app/"
+const val BASE_URL = "https://8a49-188-66-38-126.ngrok-free.app/"
 //const val BASE_URL = "http://192.168.111.242:3000/"
 
 interface TravelApi {

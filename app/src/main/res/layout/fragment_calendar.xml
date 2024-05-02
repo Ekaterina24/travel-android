@@ -46,6 +46,14 @@
                 android:text="Сохранить" />
         </LinearLayout>
 
+        <Spinner
+            android:id="@+id/spinnerTrip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="10dp"
+            android:background="@drawable/background_for_btn"
+            android:padding="10dp" />
+
     </LinearLayout>
 
     <CalendarView
@@ -60,27 +68,46 @@
         android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp"
         android:orientation="horizontal"
+        android:padding="10dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/calendarView">
 
         <TextView
             android:id="@+id/dayText"
-            android:layout_gravity="center"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:text="Day" />
 
         <ImageButton
             android:id="@+id/btnAddPlace"
             android:layout_width="36dp"
             android:layout_height="36dp"
-            android:background="@color/green"
-            android:src="@drawable/ic_add"
             android:layout_marginStart="10dp"
-            android:contentDescription="add" />
+            android:background="@color/green"
+            android:contentDescription="add"
+            android:src="@drawable/ic_add" />
+
+        <Button
+            android:id="@+id/btnCreateSub"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_marginStart="10dp"
+            android:background="@color/green"
+            android:contentDescription="add"
+            android:text="Sub" />
+
+        <Button
+            android:id="@+id/btnAddAudio"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_marginStart="10dp"
+            android:background="@color/green"
+            android:contentDescription="add"
+            android:src="@drawable/ic_add"
+            android:text="audio" />
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -91,9 +118,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        tools:listitem="@layout/place_item"
-        app:layout_constraintTop_toBottomOf="@+id/container"/>
-
+        app:layout_constraintTop_toBottomOf="@+id/container"
+        tools:listitem="@layout/place_item" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

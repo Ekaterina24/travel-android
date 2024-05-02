@@ -10,11 +10,12 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.location.Location
 import android.location.LocationManager
 import android.media.MediaPlayer
 //import com.example.travel.R
-
+//import com.example.gpstrackerapp.R
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -29,6 +30,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
+import android.view.View.OnClickListener
 import android.widget.ArrayAdapter
 import android.widget.ImageButton
 import android.widget.SeekBar
@@ -83,6 +85,7 @@ import org.osmdroid.config.Configuration
 import org.osmdroid.library.BuildConfig
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.overlay.Marker
+import org.osmdroid.views.overlay.Polyline
 import org.osmdroid.views.overlay.gestures.RotationGestureOverlay
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
@@ -114,6 +117,8 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
 
     private var _binding: FragmentMapBinding? = null
     private val binding get() = _binding!!
+    private var isServiceRunning = false
+    private var pl: Polyline? = null
 
     private var myLat: Double? = 0.0
     private var myLon: Double? = 0.0
@@ -137,8 +142,11 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
     private var isFineLocationPermissionGranted = false
     private var isCoarseLocationPermissionGranted = false
     private var isBackgroundLocationPermissionGranted = false
+    private var isReadPermissionGranted = false
+    private var isWritePermissionGranted = false
 
     val rvAdapterPlace: PlaceListAdapter by lazy { PlaceListAdapter() }
+    private var firstStart = false
 
     private lateinit var pLauncher: ActivityResultLauncher<Array<String>>
 
@@ -222,10 +230,17 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
         checkLocationEnabled()
         startAudioService()
 
-        checkPermission()
-        requestPermission()
+//        checkPermission()
+//        if (checkPermission()) {
+//            return
+//        } else {
+//            requestPermission()
+//        }
+//        requestPermission()
         registerLocReceiver()
-
+        registerReceiver()
+        checkServiceState()
+        locationUpdates()
         val token = "Bearer ${sharedPreferences.getStringValue("token")}"
 //        viewModel.getCityList()
         viewModel.getCityData()
@@ -392,13 +407,15 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
 //        }
 
 
-        val rvAdapter = AudioListByPlaceAdapter(
-            object : AudioActionListener {
-                override fun playAudio(audio: AudioModel) {
-                    speakOut(audio.desc)
-                }
-            }
-        )
+//        val rvAdapter = AudioListByPlaceAdapter(
+//            object : AudioActionListener {
+//                override fun playAudio(audio: AudioModel) {
+//                    Log.d(TAG, "playAudio: ${audio.text}")
+//                    if (audio.text.isEmpty()) return
+//                    speakOut(audio.text)
+//                }
+//            }
+//        )
 
 
         binding.rvPlaceList.adapter = rvAdapterPlace
@@ -433,23 +450,23 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
             binding.placeListContainer.visibility = View.GONE
         }
 
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            viewModel.audioListByPlace.collect {
-                Log.d("MY_TAG", "onViewCreated: $it")
-//                val list = listOf<AudioModel>(
-//                    AudioModel("123", "ererser", "ere", "1223"),
-//                    AudioModel("123", "ererss", "ere", "1223"),
-//                    AudioModel("123", "erersers", "ere", "1223"),
-//                    AudioModel("123", "erersersj", "ere", "1223")
-//                )
-//                val myHashRender: HashMap<String?, String?> = HashMap<String?, String?>()
-//                val wakeUpText = "Are you up yet?"
-//                val destFileName = "/sdcard/myAppCache/wakeUp.wav"
-//                myHashRender[TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID] = wakeUpText
-//                tts?.synthesizeToFile(wakeUpText, myHashRender, destFileName)
-                rvAdapter.submitList(it)
-            }
-        }
+//        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+//            viewModel.audioListByPlace.collect {
+//                Log.d("MY_TAG", "onViewCreated: $it")
+////                val list = listOf<AudioModel>(
+////                    AudioModel("123", "ererser", "ere", "1223"),
+////                    AudioModel("123", "ererss", "ere", "1223"),
+////                    AudioModel("123", "erersers", "ere", "1223"),
+////                    AudioModel("123", "erersersj", "ere", "1223")
+////                )
+////                val myHashRender: HashMap<String?, String?> = HashMap<String?, String?>()
+////                val wakeUpText = "Are you up yet?"
+////                val destFileName = "/sdcard/myAppCache/wakeUp.wav"
+////                myHashRender[TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID] = wakeUpText
+////                tts?.synthesizeToFile(wakeUpText, myHashRender, destFileName)
+//                rvAdapter.submitList(it)
+//            }
+//        }
 
 //        val mLocProvider = GpsMyLocationProvider(activity)
 //        mLocOverlay = MyLocationNewOverlay(mLocProvider, binding.map)
@@ -571,6 +588,12 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
                                                     detailContainer.visibility = View.GONE
                                                 }
 
+//                                                btnGo.setOnClickListener {
+//                                                    val lat = currentPlace.latitude
+//                                                    val lon = currentPlace.longitude
+//                                                }
+                                                setOnClicks(currentPlace.latitude, currentPlace.longitude)
+
                                                 btnAddPlace.setOnClickListener {
                                                     if (args.isNullOrEmpty()) {
                                                         Toast.makeText(
@@ -599,6 +622,14 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
                                     viewModel.audioListByPlace.collect { audioList ->
                                         withContext(Dispatchers.Main) {
 //                                binding.audio.text = audioList.toString()
+                                            if (audioList.isNotEmpty()) {
+                                                text = audioList[0].text
+                                            } else {
+                                                binding.containerAudio.visibility = View.GONE
+                                            }
+//                                            if (place.description.isNotEmpty())
+//                                                text = audioList[0].text
+//                                            }
                                             Log.d("MY_TAG", "audioList: ${audioList.isNotEmpty()}")
 //                                    if (audioList.isNotEmpty())
 //                                        text = audioList[0].desc
@@ -636,7 +667,112 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
         }
     }
 
+    private val receiverLoc = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == LocationService.LOC_MODEL_INTENT) {
+                val locModel = intent.getSerializableExtra(LocationService.LOC_MODEL_INTENT) as LocationModel
+                viewModel.locationUpdates.value = locModel
+            }
+        }
+    }
+
     private fun registerLocReceiver() {
+        val locFilter = IntentFilter(LocationService.LOC_MODEL_INTENT)
+        LocalBroadcastManager.getInstance(activity as AppCompatActivity)
+            .registerReceiver(receiverLoc, locFilter)
+    }
+
+    private fun setOnClicks(lat: String, lon: String) = with(binding) {
+        val listener = onClicks()
+        binding.btnGo.setOnClickListener(listener)
+        sharedPreferences.save("placeLat", lat)
+        sharedPreferences.save("placeLon", lon)
+    }
+
+    private fun onClicks(): OnClickListener {
+        return OnClickListener {
+            when (it.id) {
+                com.example.travel.R.id.btnGo -> startStopService()
+            }
+        }
+    }
+
+    private fun startStopService() {
+        if (!isServiceRunning) {
+            startLocService()
+        } else {
+            activity?.stopService(Intent(activity, LocationService::class.java))
+//            binding.btnGo.setImageResource(R.drawable.ic_play)
+//            timer?.cancel()
+        }
+        isServiceRunning = !isServiceRunning
+    }
+
+    private fun checkServiceState() {
+        isServiceRunning = LocationService.isRunning
+        if (isServiceRunning) {
+//            binding.fStartStop.setImageResource(R.drawable.ic_stop)
+//            startTimer()
+        }
+    }
+
+    private fun locationUpdates() = with(binding) {
+
+        viewModel.locationUpdates.observe(viewLifecycleOwner) {
+            updatePolyline(it.geoPointsList)
+
+            val distance = getDistanceFromLatLonInKm(
+                it.geoPointsList.last().latitude,
+                it.geoPointsList.last().longitude,
+                55.784181,
+                37.711021
+            )
+            Log.d("MY_TAG", "it.geoPointsList.last(): ${it.geoPointsList.last()} ")
+
+            if (distance <= 20) {
+                Toast.makeText(requireContext(), "Рядом!", Toast.LENGTH_SHORT).show()
+                activity?.stopService(Intent(activity, LocationService::class.java))
+            } else {
+                Toast.makeText(requireContext(), "Не рядом!", Toast.LENGTH_SHORT).show()
+            }
+
+//            if (it.geoPointsList.last())
+        }
+    }
+
+    private fun addPoint(list: List<GeoPoint>) {
+        pl?.addPoint(list[list.size - 1])
+    }
+
+    private fun fillPolyline(list: List<GeoPoint>) {
+        list.forEach{
+            pl?.addPoint(it)
+        }
+    }
+
+    private fun updatePolyline(list: List<GeoPoint>) {
+        if (list.size > 1 && firstStart) {
+            fillPolyline(list)
+            firstStart = true
+        } else {
+            addPoint(list)
+        }
+
+    }
+
+
+    private fun startLocService() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            activity?.startForegroundService(Intent(activity, LocationService::class.java))
+        } else {
+            activity?.startService(Intent(activity, LocationService::class.java))
+        }
+//        binding.fStartStop.setImageResource(R.drawable.ic_stop)
+        LocationService.startTime = System.currentTimeMillis()
+//        startTimer()
+    }
+
+    private fun registerReceiver() {
         val locFilter = IntentFilter(AudioService.DURATION)
         LocalBroadcastManager.getInstance(activity as AppCompatActivity)
             .registerReceiver(receiver, locFilter)
@@ -843,10 +979,13 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
                         // Ассоциируем имя файла с результатом TTS
                         val params = Bundle()
                         params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, "")
-
+//                        if (currentPlace.description == "") {
+//                            binding.containerAudio.visibility = View.GONE
+//                            return@withContext
+//                        }
                         // Синтез речи с записью в файл
                         tts?.synthesizeToFile(
-                            currentPlace.description,
+                            text,
                             params,
                             File(outputPath),
                             filename
@@ -894,16 +1033,10 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
                     isBackgroundLocationPermissionGranted =
                         permissions[Manifest.permission.ACCESS_BACKGROUND_LOCATION]
                             ?: isBackgroundLocationPermissionGranted
-//                    isExternalWriteStoragePermissionGranted =
-//                        permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE]
-//                            ?: isExternalWriteStoragePermissionGranted
                 } else {
                     isFineLocationPermissionGranted =
                         permissions[Manifest.permission.ACCESS_FINE_LOCATION]
                             ?: isFineLocationPermissionGranted
-//                    isExternalWriteStoragePermissionGranted =
-//                        permissions[Manifest.permission.WRITE_EXTERNAL_STORAGE]
-//                            ?: isExternalWriteStoragePermissionGranted
                 }
 
             }
@@ -935,9 +1068,13 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
         isFineLocationPermissionGranted = checkPermissionGranted(
             Manifest.permission.ACCESS_FINE_LOCATION
         )
-//        isExternalWriteStoragePermissionGranted = checkPermissionGranted(
-//            Manifest.permission.WRITE_EXTERNAL_STORAGE
-//        )
+        isReadPermissionGranted = checkPermissionGranted(
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        )
+
+        isWritePermissionGranted = checkPermissionGranted(
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             isCoarseLocationPermissionGranted = checkPermissionGranted(
@@ -947,10 +1084,6 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
             isBackgroundLocationPermissionGranted = checkPermissionGranted(
                 Manifest.permission.ACCESS_BACKGROUND_LOCATION
             )
-
-//            isExternalWriteStoragePermissionGranted = checkPermissionGranted(
-//                Manifest.permission.WRITE_EXTERNAL_STORAGE
-//            )
         }
 
         val permissionRequestList = ArrayList<String>()
@@ -963,10 +1096,15 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
             isCoarseLocationPermissionGranted,
             Manifest.permission.ACCESS_COARSE_LOCATION, permissionRequestList
         )
-//        addPermissionToRequestedList(
-//            isExternalWriteStoragePermissionGranted,
-//            Manifest.permission.WRITE_EXTERNAL_STORAGE, permissionRequestList
-//        )
+        addPermissionToRequestedList(
+            isReadPermissionGranted,
+            Manifest.permission.READ_EXTERNAL_STORAGE, permissionRequestList
+        )
+
+        addPermissionToRequestedList(
+            isWritePermissionGranted,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE, permissionRequestList
+        )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             addPermissionToRequestedList(
@@ -1017,14 +1155,18 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
         map.controller.setZoom(20.0)
         val mLocProvider = GpsMyLocationProvider(activity)
         mLocOverlay = MyLocationNewOverlay(mLocProvider, map)
-        mLocOverlay?.enableMyLocation()
-        mLocOverlay?.runOnFirstFix {
-            val myLocationGeoPoint = mLocOverlay?.myLocation
+        pl = Polyline()
+        pl?.outlinePaint?.color = Color.BLUE
+        map.controller.setZoom(20.0)
+        val mLocOverlay = MyLocationNewOverlay(mLocProvider, map)
+        mLocOverlay.enableMyLocation()
+        mLocOverlay.runOnFirstFix {
+            val myLocationGeoPoint = mLocOverlay.myLocation
             map.overlays.add(mLocOverlay)
             myLat = myLocationGeoPoint?.latitude
             myLon = myLocationGeoPoint?.longitude
             Log.d("LOCATION", "Широта: $myLat, Долгота: $myLon")
-
+            map.overlays.add(pl)
         }
         Log.d("MY_TAG", "mLocOverlay2: ${mLocProvider.locationSources}")
 //        val res = mLocOverlay.myLocation
@@ -1050,49 +1192,15 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
             Log.d("TAG", "currentLocation: $currentLocation")
         }
 
-        val distance = getDistanceFromLatLonInKm(myLat!!, myLon!!, 55.784181, 37.711021)
-        Log.d("MY_TAG", "distance: ${distance} ")
-
-        if (distance <= 20) {
-            Toast.makeText(requireContext(), "Рядом!", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(requireContext(), "Не рядом!", Toast.LENGTH_SHORT).show()
-        }
+//        val distance = getDistanceFromLatLonInKm(myLat!!, myLon!!, 55.784181, 37.711021)
+//        Log.d("MY_TAG", "distance: ${distance} ")
+//
+//        if (distance <= 20) {
+//            Toast.makeText(requireContext(), "Рядом!", Toast.LENGTH_SHORT).show()
+//        } else {
+//            Toast.makeText(requireContext(), "Не рядом!", Toast.LENGTH_SHORT).show()
+//        }
     }
-
-//    private fun updateOrRequestPermissions() {
-////        val hasReadPermission = ContextCompat.checkSelfPermission(
-////            requireContext(),
-////            Manifest.permission.READ_EXTERNAL_STORAGE
-////        ) == PackageManager.PERMISSION_GRANTED
-////        val hasWritePermission = ContextCompat.checkSelfPermission(
-////            requireContext(),
-////            Manifest.permission.WRITE_EXTERNAL_STORAGE
-////        ) == PackageManager.PERMISSION_GRANTED
-////        val hasReadImagesPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-////            ContextCompat.checkSelfPermission(
-////                requireContext(),
-////                Manifest.permission.READ_MEDIA_IMAGES
-////            ) == PackageManager.PERMISSION_GRANTED
-////        } else {
-////            TODO("VERSION.SDK_INT < TIRAMISU")
-////        }
-//        val minSdk29 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
-//
-//        readPermissionGranted = hasReadPermission
-//        writePermissionGranted = hasWritePermission || minSdk29
-//
-//        val permissionsToRequest = mutableListOf<String>()
-//        if(!writePermissionGranted) {
-//            permissionsToRequest.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-//        }
-//        if(!readPermissionGranted) {
-//            permissionsToRequest.add(Manifest.permission.READ_EXTERNAL_STORAGE)
-//        }
-//        if(permissionsToRequest.isNotEmpty()) {
-//            pLauncher.launch(permissionsToRequest.toTypedArray())
-//        }
-//    }
 
     fun deg2rad(deg: Double): Double {
         return deg * (PI / 180)

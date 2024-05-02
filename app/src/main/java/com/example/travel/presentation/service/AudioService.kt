@@ -105,7 +105,7 @@ class AudioService : Service() {
 
     private fun startMusic(filePath: String) {
         scope.launch {
-            delay(2000)
+            delay(3000)
             if (playingJob?.isActive == true && mediaPlayer?.isPlaying == false && (mediaPlayer?.currentPosition
                     ?: 0) > 0
             ) {

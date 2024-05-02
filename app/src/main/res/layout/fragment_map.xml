@@ -104,6 +104,16 @@
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
 
+                        <Button
+                            android:id="@+id/btnGo"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="В путь"
+                            android:layout_marginStart="10dp"
+                            android:backgroundTint="@color/green"
+                            android:contentDescription="add"
+                            android:src="@drawable/ic_add" />
+
                         <ImageButton
                             android:id="@+id/btnAddPlace"
                             android:layout_width="36dp"
@@ -163,6 +173,7 @@
 <!--                    tools:listitem="@layout/audio_item" />-->
 
                 <LinearLayout
+                    android:id="@+id/containerAudio"
                     android:orientation="horizontal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">

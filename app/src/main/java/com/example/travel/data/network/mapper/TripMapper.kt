@@ -15,12 +15,14 @@ class TripMapper {
     private fun mapDtoToModel(tripDto: TripListDTO) = GetTripListModel(
         id = tripDto.id,
         date_start = tripDto.date_start,
-        date_finish = tripDto.date_finish
+        date_finish = tripDto.date_finish,
+        city = tripDto.city
     )
 
     fun mapModelToDto(tripModel: TripModel) = TripDTO(
         date_start = tripModel.date_start,
-        date_finish = tripModel.date_finish
+        date_finish = tripModel.date_finish,
+        city = tripModel.city
     )
 
     fun mapListDtoToList(dtoList: List<TripListDTO>): List<GetTripListModel> {

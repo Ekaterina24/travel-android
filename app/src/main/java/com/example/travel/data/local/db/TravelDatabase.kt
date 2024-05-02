@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 
 @Database(
     entities = [
@@ -13,15 +14,15 @@ import androidx.room.RoomDatabase
 //        UserItem::class,
 //        TripItem::class,
 //        DayPlacesItem::class,
-//        AudioItem::class,
+        AudioItem::class,
 //        ReviewItem::class,
-//        SubscribeItem::class,
+        SubscribeItem::class,
 //        TypeSubscribeItem::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
-//@TypeConverters(Converters::class)
+@TypeConverters(Converters::class)
 abstract class TravelDatabase : RoomDatabase() {
 
     abstract fun cityDao(): CityDao
@@ -30,9 +31,9 @@ abstract class TravelDatabase : RoomDatabase() {
 //    abstract fun userDao(): UserDao
 //    abstract fun tripDao(): TripDao
 //    abstract fun placeOnDayDao(): DayPlacesDao
-//    abstract fun audioDao(): AudioDao
+    abstract fun audioDao(): AudioDao
 //    abstract fun reviewDao(): ReviewDao
-//    abstract fun subscribeDao(): SubscribeDao
+    abstract fun subscribeDao(): SubscribeDao
 //    abstract fun typeSubscribeDao(): TypeSubscribeDao
 
     companion object {

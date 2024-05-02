@@ -51,7 +51,7 @@ class AudioListByPlaceAdapter(
 
 val callback2 = object: DiffUtil.ItemCallback<AudioModel>() {
     override fun areItemsTheSame(oldItem: AudioModel, newItem: AudioModel): Boolean {
-        return oldItem.desc == newItem.desc
+        return oldItem.text == newItem.text
     }
 
     override fun areContentsTheSame(oldItem: AudioModel, newItem: AudioModel): Boolean {

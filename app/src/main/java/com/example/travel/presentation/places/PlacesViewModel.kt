@@ -1,6 +1,7 @@
 package com.example.travel.presentation.places
 
 import android.util.Log
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -40,7 +41,7 @@ class PlacesViewModelFactory : ViewModelProvider.Factory {
         if (modelClass.isAssignableFrom(PlacesViewModel::class.java)) {
             val repo = PlaceRepositoryImpl()
             val repo2 = CityRepositoryImpl(App.INSTANCE)
-            val repo3 = AudioRepositoryImpl()
+            val repo3 = AudioRepositoryImpl(App.INSTANCE)
                 val useCase1 = GetPlacesUseCase(repo)
 
             val useCase2 = GetCityListUseCase(repo2)
@@ -84,6 +85,8 @@ class PlacesViewModel(
 
     private var _place = MutableSharedFlow<PlaceModel>()
     var place = _place.asSharedFlow()
+
+    val locationUpdates = MutableLiveData<LocationModel>()
 
     fun getPlaceList(cityId: Int, search: String, category: String) {
         viewModelScope.launch(Dispatchers.IO) {
