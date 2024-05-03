@@ -58,4 +58,9 @@
             android:id="@+id/action_cityFragment_to_weatherFragment"
             app:destination="@id/weatherFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.example.travel.presentation.profile.ProfileFragment"
+        android:label="fragment_profile"
+        tools:layout="@layout/fragment_profile" />
 </navigation>

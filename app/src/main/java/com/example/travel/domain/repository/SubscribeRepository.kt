@@ -10,5 +10,6 @@ interface SubscribeRepository {
 
     suspend fun insertSubscribe(subscribe: SubscribeModel)
     suspend fun insertSubscribeList(subscribeList: List<SubscribeModel>)
-    fun observeSubscribeList(): List<SubscribeModel>
+    suspend fun observeSubscribeList(): List<SubscribeModel>
+//    fun observeSubscribeList(): Flow<List<SubscribeModel>>
 }

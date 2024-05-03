@@ -1,4 +1,4 @@
-package com.example.travel.data.network.mapper
+package com.example.travel.data.mapper
 
 import com.example.travel.data.network.dto.PlaceDTO
 import com.example.travel.data.network.dto.TripDTO

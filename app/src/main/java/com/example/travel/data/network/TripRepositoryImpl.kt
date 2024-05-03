@@ -1,7 +1,7 @@
 package com.example.travel.data.network
 
 import com.example.travel.data.network.api.RetrofitInstance
-import com.example.travel.data.network.mapper.TripMapper
+import com.example.travel.data.mapper.TripMapper
 import com.example.travel.domain.model.GetTripListModel
 import com.example.travel.domain.model.TripModel
 import com.example.travel.domain.repository.TripRepository

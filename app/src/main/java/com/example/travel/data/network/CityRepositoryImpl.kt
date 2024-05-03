@@ -4,7 +4,7 @@ import android.app.Application
 import com.example.travel.data.local.db.CityDao
 import com.example.travel.data.local.db.TravelDatabase
 import com.example.travel.data.network.api.RetrofitInstance
-import com.example.travel.data.network.mapper.CityMapper
+import com.example.travel.data.mapper.CityMapper
 import com.example.travel.domain.model.CityModel
 import com.example.travel.domain.repository.CityRepository
 

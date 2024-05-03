@@ -2,6 +2,8 @@ package com.example.travel.presentation.places
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -19,13 +21,15 @@ import com.example.travel.databinding.PlaceItemBinding
 import com.example.travel.domain.model.PlaceModel
 
 interface PlaceActionListener {
-    fun onChoosePlace(place: PlaceModel)
+//    fun onChoosePlace(place: PlaceModel)
 
-    fun getPlaceId(id: String)
+//    fun getPlaceId(genId: Long, isFavorite: Boolean)
+    fun getPlaceId(genId: Long)
+//    fun getPlaceId(id: String)
 }
 
 class PlaceListAdapter(
-//    private val actionListener: PlaceActionListener,
+    private val actionListener: PlaceActionListener,
 ):
     ListAdapter<PlaceModel, PlaceListAdapter.PlaceListViewHolder>(callback),
     View.OnClickListener
@@ -36,8 +40,9 @@ class PlaceListAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PlaceListViewHolder {
         val binding = PlaceItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        binding.root.setOnClickListener(this)
+//        binding.root.setOnClickListener(this)
         binding.imageButton.setOnClickListener(this)
+        binding.imageFavorite.setOnClickListener(this)
         return PlaceListViewHolder(binding)
     }
 
@@ -46,8 +51,19 @@ class PlaceListAdapter(
 //        holder.binding.imageView.load(placeItem.imageUrl)
         holder.binding.tvName.text = placeItem.name
         holder.binding.tvType.text = placeItem.typePlace
+        holder.binding.imageFavorite.imageTintList =
+            when (placeItem.is_favourite) {
+                true -> ColorStateList.valueOf(Color.RED)
+                false -> ColorStateList.valueOf(Color.GRAY)
+            }
+        holder.binding.checkBox.isChecked = when(placeItem.is_visited) {
+            true -> true
+            false -> false
+        }
+//            ColorStateList.valueOf(Color.RED) //
         holder.itemView.tag = placeItem
         holder.binding.imageButton.tag = placeItem
+        holder.binding.imageFavorite.tag = placeItem
 //        holder.itemView.setOnClickListener {
 //            Log.d("MY_TAG", "onClick: item")
 //        }
@@ -64,9 +80,14 @@ class PlaceListAdapter(
 
     override fun onClick(v: View) {
         val place = v.tag as PlaceModel
+        val position = currentList.indexOf(place)
         when (v.id) {
             R.id.imageButton -> {
 //                actionListener.onChoosePlace(place)
+            }
+            R.id.imageFavorite -> {
+                actionListener.getPlaceId(place.generatedId)
+//                notifyItemChanged(position) // Обновляем элемент в RecyclerView
             }
         }
     }

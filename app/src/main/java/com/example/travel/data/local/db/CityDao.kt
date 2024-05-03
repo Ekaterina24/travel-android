@@ -16,7 +16,7 @@ interface CityDao {
     suspend fun insertCityList(cityList: List<CityItem>)
 
     @Query("SELECT * FROM city_item")
-    fun observeAllCityItems(): List<CityItem>
+    suspend fun observeAllCityItems(): List<CityItem>
 
 //    @Delete
 //    suspend fun deleteCityItem(cityItem: CityItem)

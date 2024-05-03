@@ -9,9 +9,9 @@ import androidx.room.TypeConverters
 @Database(
     entities = [
         CityItem::class,
-//        PlaceItem::class,
+        PlaceItem::class,
 //        AddressItem::class,
-//        UserItem::class,
+        UserItem::class,
 //        TripItem::class,
 //        DayPlacesItem::class,
         AudioItem::class,
@@ -19,16 +19,16 @@ import androidx.room.TypeConverters
         SubscribeItem::class,
 //        TypeSubscribeItem::class
     ],
-    version = 2,
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
 abstract class TravelDatabase : RoomDatabase() {
 
     abstract fun cityDao(): CityDao
-//    abstract fun placeDao(): PlaceDao
+    abstract fun placeDao(): PlaceDao
 //    abstract fun addressDao(): AddressDao
-//    abstract fun userDao(): UserDao
+    abstract fun userDao(): UserDao
 //    abstract fun tripDao(): TripDao
 //    abstract fun placeOnDayDao(): DayPlacesDao
     abstract fun audioDao(): AudioDao

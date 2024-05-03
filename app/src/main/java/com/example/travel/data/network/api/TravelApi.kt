@@ -9,6 +9,7 @@ import com.example.travel.data.network.dto.TokenDTO
 import com.example.travel.data.network.dto.TripDTO
 import com.example.travel.data.network.dto.TripListDTO
 import com.example.travel.data.network.dto.UserDTO
+import com.example.travel.data.network.dto.UserProfileDTO
 import com.example.travel.domain.model.CategoryModel
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -68,6 +69,9 @@ interface TravelApi {
 
     @GET("audio")
     suspend fun getAudioList(): List<AudioDTO>
+
+    @GET("auth/profile")
+    suspend fun getUserProfile(@Header("Authorization") token: String): UserProfileDTO
 }
 
 object RetrofitInstance {

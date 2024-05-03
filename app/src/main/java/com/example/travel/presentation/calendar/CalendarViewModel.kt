@@ -28,6 +28,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 
 
@@ -88,6 +90,16 @@ class CalendarViewModel(
     }
 
     fun uploadSub() {
+//
+//        viewModelScope.launch(Dispatchers.IO) {
+//            runCatching {
+//                uploadSubscribeUseCase().first() // Вызываем .first(), чтобы собрать значение из Flow
+//            }.onSuccess { list ->
+//                _subList.emit(list) // Мы ожидаем List<SubscribeModel>, поэтому можем использовать emit для передачи списка
+//            }.onFailure { exception ->
+//                Log.e("TAG", "Error uploading subscription: ", exception)
+//            }
+//        }
         viewModelScope.launch(Dispatchers.IO) {
             async {
                 kotlin.runCatching {

@@ -15,10 +15,10 @@ interface AudioDao {
     suspend fun insertAudio(audio: AudioItem)
 
     @Query("SELECT * FROM audio_item WHERE placeId = :placeId")
-    fun observeAudioListByPlaceId(placeId: Long): List<AudioItem>
+    suspend fun observeAudioListByPlaceId(placeId: Long): List<AudioItem>
 
     @Query("SELECT * FROM audio_item WHERE id = :id")
-    fun observeAudioById(id: Long): AudioItem
+    suspend fun observeAudioById(id: Long): AudioItem
 
     @Query("UPDATE audio_item SET status = :status WHERE id = :id")
     suspend fun updateStatus(status: String, id: Long)

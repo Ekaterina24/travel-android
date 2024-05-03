@@ -18,6 +18,7 @@ interface SubscribeDao {
     suspend fun insertSubscribeList(subscribeList: List<SubscribeItem>)
 
     @Query("SELECT * FROM subscribe_item")
-    fun observeSubscribeList(): List<SubscribeItem>
+//    fun observeSubscribeList(): Flow<List<SubscribeItem>>
+    suspend fun observeSubscribeList(): List<SubscribeItem>
 
 }

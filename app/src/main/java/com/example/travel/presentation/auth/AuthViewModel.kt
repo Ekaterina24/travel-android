@@ -3,6 +3,7 @@ package com.example.travel.presentation.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.travel.App
 import com.example.travel.data.network.DayPlacesRepositoryImpl
 import com.example.travel.data.network.TripRepositoryImpl
 import com.example.travel.data.network.UserRepositoryImpl
@@ -29,7 +30,7 @@ import kotlinx.coroutines.launch
 class AuthViewModelFactory : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AuthViewModel::class.java)) {
-            val repo = UserRepositoryImpl()
+            val repo = UserRepositoryImpl(App.INSTANCE)
                 val useCase1 = RegisterUserUseCase(repo)
                 val useCase2 = LoginUserUseCase(repo)
 

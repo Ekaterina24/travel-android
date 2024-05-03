@@ -145,7 +145,7 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
     private var isReadPermissionGranted = false
     private var isWritePermissionGranted = false
 
-    val rvAdapterPlace: PlaceListAdapter by lazy { PlaceListAdapter() }
+//    val rvAdapterPlace: PlaceListAdapter by lazy { PlaceListAdapter() }
     private var firstStart = false
 
     private lateinit var pLauncher: ActivityResultLauncher<Array<String>>
@@ -155,6 +155,7 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
     private var search = ""
 
     var placeId = ""
+   private var placeIsFav = false
     private var tts: TextToSpeech? = null
     var text = ""
 
@@ -297,7 +298,8 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
                             }
                             binding.map.overlays.clear()
                             try {
-                                viewModel.getPlaceList(cityId, search, category)
+//                                viewModel.getPlaceList(cityId, search, category)
+                                viewModel.getPlaceListData(cityId, search, category)
 
                             } catch (e: Exception) {
                                 Log.e("MY_TAG", "onViewCreated: ${e.message}")
@@ -319,7 +321,8 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
                 .flowOn(Dispatchers.IO)
                 .collectLatest { textSearch ->
                     search = textSearch.lowercase()
-                    viewModel.getPlaceList(cityId, search, category)
+//                    viewModel.getPlaceList(cityId, search, category)
+                    viewModel.getPlaceListData(cityId, search, category)
                 }
         }
 
@@ -333,7 +336,8 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
 
             override fun getCategory(name: String) {
                 category = name
-                viewModel.getPlaceList(cityId, search, category)
+//                viewModel.getPlaceList(cityId, search, category)
+                viewModel.getPlaceListData(cityId, search, category)
             }
 
         })
@@ -342,7 +346,7 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
             requireContext(), LinearLayoutManager.HORIZONTAL, false
         )
 
-        viewModel.getCategoryList()
+//        viewModel.getCategoryList()
 
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             viewModel.categoryList.collect { list ->
@@ -353,8 +357,8 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
         }
 
 
-//        val rvAdapter = PlaceListAdapter(
-//            object : PlaceActionListener {
+        val rvAdapter = PlaceListAdapter(
+            object : PlaceActionListener {
 //                override fun onChoosePlace(place: PlaceModel) {
 //                    Log.d("MY_TAG", "args: ${args?.get(1).toString().toLong()}}")
 //                    viewModelCalendar.addDayPlace(
@@ -366,23 +370,30 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
 //                        )
 //                    )
 //                }
-//
-//                override fun getPlaceId(id: String) {
+
+                override fun getPlaceId(genId: Long) {
 //                    placeId = id
+                   viewModel.uploadPlaceFromDb(genId)
+
 //                    binding.container.visibility = View.VISIBLE
 //                    Log.d("MyLog", "placeId: $placeId")
 //
 //                    viewModel.getAudioListByPlace(placeId)
 //                    viewModel.getPlaceById(placeId)
-//
-//                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-//                        viewModel.place.collect { place ->
+
+                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                        viewModel.place.collect { place ->
+
+                            placeIsFav = place.is_favourite
+                            Log.d("TAG", "getPlaceId: $genId, placeIsNotFav $placeIsFav")
+                            viewModel.updatePlaceFavorite(!placeIsFav, genId)
+                            viewModel.getPlaceListData(cityId, search, category)
 //                            withContext(Dispatchers.Main) {
-//                                binding.name.text = place.name
+//                                binding.im
 //                            }
-//                        }
-//                    }
-//
+                        }
+                    }
+
 //                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
 //                        viewModel.audioListByPlace.collect { audioList ->
 //                            withContext(Dispatchers.Main) {
@@ -391,12 +402,12 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
 //                            }
 //                        }
 //                    }
-//                }
-//
-//            }
-//
-//        )
-//        binding.rvPlaceList.adapter = rvAdapter
+                }
+
+            }
+
+        )
+
 
 
 //        viewLifecycleOwner.lifecycleScope.launch {
@@ -418,7 +429,8 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
 //        )
 
 
-        binding.rvPlaceList.adapter = rvAdapterPlace
+//        binding.rvPlaceList.adapter = rvAdapterPlace
+        binding.rvPlaceList.adapter = rvAdapter
 
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             viewModel.placeList.collect {
@@ -430,7 +442,8 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
                             newList.add(item)
                         }
                     }
-                    rvAdapterPlace.submitList(newList)
+//                    rvAdapterPlace.submitList(newList)
+                    rvAdapter.submitList(newList)
                 }
 
             }
@@ -697,6 +710,8 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
         }
     }
 
+
+
     private fun startStopService() {
         if (!isServiceRunning) {
             startLocService()
@@ -724,14 +739,17 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
             val distance = getDistanceFromLatLonInKm(
                 it.geoPointsList.last().latitude,
                 it.geoPointsList.last().longitude,
-                55.784181,
-                37.711021
+//                55.784181,
+//                37.711021
+                55.670020,37.279790
             )
             Log.d("MY_TAG", "it.geoPointsList.last(): ${it.geoPointsList.last()} ")
 
             if (distance <= 20) {
                 Toast.makeText(requireContext(), "Рядом!", Toast.LENGTH_SHORT).show()
                 activity?.stopService(Intent(activity, LocationService::class.java))
+                viewModel.updatePlaceVisited(true, 1)
+                viewModel.getPlaceListData(cityId, search, category)
             } else {
                 Toast.makeText(requireContext(), "Не рядом!", Toast.LENGTH_SHORT).show()
             }

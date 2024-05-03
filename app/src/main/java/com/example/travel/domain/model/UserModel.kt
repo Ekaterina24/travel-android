@@ -8,6 +8,13 @@ data class UserModel(
     val scores: Long
 )
 
+data class UserProfileModel(
+    val id: Long,
+    val username: String,
+    val email: String,
+    val scores: Long
+)
+
 enum class UserRole {
     MODERATOR,
     USER
