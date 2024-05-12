@@ -10,35 +10,22 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
-import androidx.core.os.bundleOf
-import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import com.example.travel.R
 import com.example.travel.data.local.prefs.SharedPreferences
 import com.example.travel.databinding.FragmentCalendarBinding
 import com.example.travel.domain.model.AudioModel
-import com.example.travel.domain.model.PlaceModel
-import com.example.travel.domain.model.SubscribeModel
 import com.example.travel.domain.model.TripModel
-import com.example.travel.presentation.places.MapFragmentDirections
-import com.example.travel.presentation.places.PlaceListAdapter
 import com.example.travel.presentation.places.PlacesViewModel
 import com.example.travel.presentation.places.PlacesViewModelFactory
 import com.google.android.material.datepicker.MaterialDatePicker
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
-import org.osmdroid.util.GeoPoint
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Date
 
 @Parcelize
@@ -94,21 +81,21 @@ class CalendarFragment : Fragment() {
         }
 
         binding.btnCreateSub.setOnClickListener {
-            viewModel.createSub(SubscribeModel(1, 2, "base", Date(System.currentTimeMillis())))
+//            viewModel.createSub(SubscribeModel(1, 2, , Date(System.currentTimeMillis())))
         }
 
         viewModel.uploadSub()
 
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            viewModel.subList.collect { list ->
-                list.forEach { sub ->
-                    if ( Date(System.currentTimeMillis()).time - sub.date.time >= 1000 ) {
-                        Log.d("MY_TAG", "time: ${Date(System.currentTimeMillis()).time - sub.date.time}")
-                        viewModel.updateAudio(status = "OPEN", 1)
-                    }
-                }
-            }
-        }
+//        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+//            viewModel.subList.collect { list ->
+//                list.forEach { sub ->
+//                    if ( Date(System.currentTimeMillis()).time - sub.date.time >= 1000 ) {
+//                        Log.d("MY_TAG", "time: ${Date(System.currentTimeMillis()).time - sub.date.time}")
+//                        viewModel.updateAudio(status = "OPEN", 1)
+//                    }
+//                }
+//            }
+//        }
 
 
                     binding.rangeDate.setOnClickListener {

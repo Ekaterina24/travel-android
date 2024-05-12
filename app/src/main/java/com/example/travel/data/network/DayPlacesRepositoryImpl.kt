@@ -16,5 +16,4 @@ class DayPlacesRepositoryImpl: DayPlacesRepository {
         return mapper.mapListDtoToList(RetrofitInstance.travelApi.getPlaceListByUser(token, date))
     }
 
-
 }

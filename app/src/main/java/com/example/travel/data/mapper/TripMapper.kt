@@ -1,14 +1,9 @@
 package com.example.travel.data.mapper
 
-import com.example.travel.data.network.dto.PlaceDTO
 import com.example.travel.data.network.dto.TripDTO
 import com.example.travel.data.network.dto.TripListDTO
 import com.example.travel.domain.model.GetTripListModel
-import com.example.travel.domain.model.PlaceModel
 import com.example.travel.domain.model.TripModel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
-import java.util.Date
 
 class TripMapper {
 

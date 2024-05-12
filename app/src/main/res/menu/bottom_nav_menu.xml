@@ -21,7 +21,7 @@
         />
 
     <item
-        android:id="@+id/profileFragment"
+        android:id="@+id/controlProfileFragment"
         android:title="Профиль"
         android:icon="@drawable/ic_person"
         />

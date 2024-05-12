@@ -1,22 +1,16 @@
 package com.example.travel.presentation.profile
 
-import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
-import com.example.travel.R
 import com.example.travel.data.local.prefs.SharedPreferences
 import com.example.travel.databinding.FragmentProfileBinding
-import com.example.travel.domain.model.PlaceModel
-import com.example.travel.presentation.auth.AuthViewModel
-import com.example.travel.presentation.auth.AuthViewModelFactory
-import com.example.travel.presentation.places.PlaceActionListener
-import com.example.travel.presentation.places.PlaceListAdapter
+import com.musfickjamil.snackify.Snackify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -27,9 +21,7 @@ class ProfileFragment : Fragment() {
         fun newInstance() = ProfileFragment()
     }
 
-//    private lateinit var viewModel: ProfileViewModel
-
-    private val viewModelProfile: ProfileViewModel by viewModels {
+    private val viewModelProfile: ProfileViewModel by activityViewModels {
         ProfileViewModelFactory()
     }
 
@@ -52,69 +44,67 @@ class ProfileFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val token = "Bearer ${sharedPreferences.getStringValue("token")}"
+        val city = sharedPreferences.getStringValue("city")
         Log.d("TAG", "onViewCreated: $token")
 //       viewModelProfile.cashUserProfile(token)
         viewModelProfile.uploadUserProfile(token)
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             viewModelProfile.userProfile.collect {
-                    binding.tvName.text = it.username
-                Log.d("TAG", "onViewCreated: ${it.username}")
-            }
-        }
-
-        viewModelProfile.uploadPlaceList()
-
-        val rvAdapter = PlaceListAdapter(
-            object : PlaceActionListener {
-
-                override fun getPlaceId(genId: Long) {
-//                    placeId = id
-//                    viewModel.uploadPlaceFromDb(genId)
-//
-////                    binding.container.visibility = View.VISIBLE
-////                    Log.d("MyLog", "placeId: $placeId")
-////
-////                    viewModel.getAudioListByPlace(placeId)
-////                    viewModel.getPlaceById(placeId)
-//
-//                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-//                        viewModel.place.collect { place ->
-//
-//                            placeIsFav = !place.is_favourite
-//                            Log.d("TAG", "getPlaceId: $genId, placeIsNotFav $placeIsFav")
-//                            viewModel.updatePlaceFavorite(placeIsFav, genId)
-////                            withContext(Dispatchers.Main) {
-////                                binding.im
-////                            }
-//                        }
-//                    }
-
-                }
-
-            }
-
-        )
-
-
-        binding.rvPlaceList.adapter = rvAdapter
-
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            viewModelProfile.placeList.collect {
-//                Log.d("MY_TAG", "places: ${it.size}")
                 withContext(Dispatchers.Main) {
-                    val newList = mutableListOf<PlaceModel>()
-                    it.map { item ->
-                        if (item.is_visited) {
-                            newList.add(item)
-                        }
+                    binding.etName.setText(it.username)
+                    binding.etEmail.setText(it.email)
+
+                    binding.etName.apply {
+                        isFocusable = false
+                        isFocusableInTouchMode = false
+                        isCursorVisible = false
                     }
-//                    rvAdapterPlace.submitList(newList)
-                    Log.d("MY_TAG", "newList: ${newList}")
-                    rvAdapter.submitList(newList)
+                    binding.etEmail.apply {
+                        isFocusable = false
+                        isFocusableInTouchMode = false
+                        isCursorVisible = false
+                    }
                 }
 
             }
         }
+
+
+        binding.btnEdit.setOnClickListener {
+            it.isEnabled = false
+            binding.btnSave.isEnabled = true
+            binding.etName.apply {
+                isFocusable = true
+                isFocusableInTouchMode = true
+                isCursorVisible = true
+            }
+            binding.etEmail.apply {
+                isFocusable = true
+                isFocusableInTouchMode = true
+                isCursorVisible = true
+            }
+
+        }
+
+        binding.btnSave.isEnabled = false
+        binding.btnSave.setOnClickListener {
+            it.isEnabled = false
+            binding.btnEdit.isEnabled = true
+            Log.d("TAG", "updateUser: ${binding.etName.text} ${binding.etEmail.text}")
+            binding.etName.apply {
+                isFocusable = false
+                isFocusableInTouchMode = false
+                isCursorVisible = false
+            }
+            binding.etEmail.apply {
+                isFocusable = false
+                isFocusableInTouchMode = false
+                isCursorVisible = false
+            }
+
+            Snackify.success(binding.btnEdit, "Данные изменены", Snackify.LENGTH_SHORT).show()
+        }
+
     }
 
 

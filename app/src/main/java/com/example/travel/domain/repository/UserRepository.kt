@@ -1,15 +1,11 @@
 package com.example.travel.domain.repository
 
-import androidx.room.Query
-import com.example.travel.data.local.db.UserItem
-import com.example.travel.data.network.dto.UserDTO
 import com.example.travel.domain.model.LoginModel
-import com.example.travel.domain.model.PlaceModel
 import com.example.travel.domain.model.RegisterModel
 import com.example.travel.domain.model.TokenModel
+import com.example.travel.domain.model.UpdateScoresRequest
 import com.example.travel.domain.model.UserModel
 import com.example.travel.domain.model.UserProfileModel
-import retrofit2.http.Header
 
 interface UserRepository {
 
@@ -17,6 +13,8 @@ interface UserRepository {
     suspend fun loginUser(user: LoginModel): TokenModel
     suspend fun updateUser()
     suspend fun getUserProfile(token: String): UserProfileModel
+    suspend fun getUserList(): List<UserProfileModel>
+    suspend fun updateScoresFromApi(token: String, scores: UpdateScoresRequest)
 
     // Local
     suspend fun insertUser(user: UserProfileModel)

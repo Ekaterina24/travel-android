@@ -4,4 +4,10 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="dialog_title">Dialog</string>
     <string name="dialog_msg">Message</string>
+    <string name="register">Регистрация</string>
+    <string name="login">Вход</string>
+
+    <string name="settings">Настройки</string>
+    <string name="actions">Подписки</string>
+    <string name="rating">Рейтинг</string>
 </resources>

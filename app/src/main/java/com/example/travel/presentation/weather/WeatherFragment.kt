@@ -109,6 +109,8 @@ class WeatherFragment : Fragment(), GetStatus {
 
                                     setEffectRainSnow(it.weather?.get(0)?.icon ?: "-")
                                 }
+                            } else {
+                                Toast.makeText(context, "${response.message()}", Toast.LENGTH_SHORT).show()
                             }
                         }
 

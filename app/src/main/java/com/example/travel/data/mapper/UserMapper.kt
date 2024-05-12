@@ -19,12 +19,13 @@ class UserMapper {
 
     fun mapDtoToModel(tokenDto: TokenDTO) = TokenModel(
         accessToken = tokenDto.accessToken,
+        expiresIn = tokenDto.expiresIn,
     )
 
     fun mapModelToDto(userModel: RegisterModel) = UserDTO(
-        username = userModel.username!!,
-        email = userModel.email!!,
-        password = userModel.password!!
+        username = userModel.username,
+        email = userModel.email,
+        password = userModel.password
     )
 
     fun mapModelToDto(userModel: UserProfileModel) = UserProfileDTO(
@@ -42,15 +43,15 @@ class UserMapper {
     )
 
     fun mapModelToDto(userModel: LoginModel) = LoginDTO(
-        email = userModel.email!!,
-        password = userModel.password!!
+        email = userModel.email,
+        password = userModel.password
     )
 
-//    fun mapListDtoToList(dtoList: List<AudioDTO>): List<AudioModel> {
-//        val resList = mutableListOf<AudioModel>()
-//        dtoList.forEach { resList.add(mapDtoToModel(it)) }
-//        return resList
-//    }
+    fun mapListDtoToList(dtoList: List<UserProfileDTO>): List<UserProfileModel> {
+        val resList = mutableListOf<UserProfileModel>()
+        dtoList.forEach { resList.add(mapDtoToModel(it)) }
+        return resList
+    }
 
     fun mapModelToDbModel(userModel: UserProfileModel) = UserItem(
         id = userModel.id,

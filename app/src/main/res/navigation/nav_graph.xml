@@ -35,11 +35,7 @@
         android:id="@+id/authFragment"
         android:name="com.example.travel.presentation.auth.AuthFragment"
         android:label="fragment_auth"
-        tools:layout="@layout/fragment_auth" >
-        <action
-            android:id="@+id/action_authFragment_to_mapFragment"
-            app:destination="@id/mapFragment" />
-    </fragment>
+        tools:layout="@layout/fragment_auth" />
     <fragment
         android:id="@+id/weatherFragment"
         android:name="com.example.travel.presentation.weather.WeatherFragment"
@@ -63,4 +59,24 @@
         android:name="com.example.travel.presentation.profile.ProfileFragment"
         android:label="fragment_profile"
         tools:layout="@layout/fragment_profile" />
+    <fragment
+        android:id="@+id/controlFragment"
+        android:name="com.example.travel.presentation.auth.ControlFragment"
+        android:label="ControlFragment" >
+        <action
+            android:id="@+id/action_controlFragment_to_mapFragment"
+            app:destination="@id/mapFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/requireRegisterFragment"
+        android:name="com.example.travel.presentation.RequireRegisterFragment"
+        android:label="RequireRegisterFragment" >
+        <action
+            android:id="@+id/action_requireRegisterFragment_to_controlFragment"
+            app:destination="@id/controlFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/controlProfileFragment"
+        android:name="com.example.travel.presentation.profile.ControlProfileFragment"
+        android:label="ControlProfileFragment" />
 </navigation>

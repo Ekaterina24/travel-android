@@ -10,11 +10,13 @@ import java.util.Date
 data class SubscribeItem(
     @PrimaryKey
     val id: Long,
-    @SerializedName("user_id")
-    val userId: Long,
+//    @SerializedName("user_id")
+//    val userId: Long,
     @SerializedName("type_id")
-    val typeId: String,
-    val date: Date
+//    val typeId: String,
+    val typeId: Int,
+    val date: Date,
+    val city: String
 )
 
 

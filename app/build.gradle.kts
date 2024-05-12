@@ -98,4 +98,7 @@ dependencies {
 
     //location
     implementation("com.google.android.gms:play-services-location:21.2.0")
+
+    // Snackbar
+    implementation("com.github.Musfick:Snackify:0.1.2")
 }

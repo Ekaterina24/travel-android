@@ -10,10 +10,9 @@ import com.example.travel.data.network.DayPlacesRepositoryImpl
 import com.example.travel.data.network.SubscribeRepositoryImpl
 import com.example.travel.data.network.TripRepositoryImpl
 import com.example.travel.domain.model.AudioModel
-import com.example.travel.domain.model.CityModel
 import com.example.travel.domain.model.DayPlaceModel
 import com.example.travel.domain.model.GetTripListModel
-import com.example.travel.domain.model.SubscribeModel
+import com.example.travel.domain.model.GetSubscribeModel
 import com.example.travel.domain.model.TripModel
 import com.example.travel.domain.usecase.AddDayPlaceUseCase
 import com.example.travel.domain.usecase.CashAudioUseCase
@@ -28,8 +27,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 
 
@@ -74,7 +71,7 @@ class CalendarViewModel(
     var startDate = MutableStateFlow("00-00-00")
     val finishDate = MutableStateFlow("00-00-00")
 
-    private var _subList = MutableSharedFlow<List<SubscribeModel>>()
+    private var _subList = MutableSharedFlow<List<GetSubscribeModel>>()
     var subList = _subList.asSharedFlow()
 
     fun createTrip(token: String, trip: TripModel) {
@@ -83,7 +80,7 @@ class CalendarViewModel(
         }
     }
 
-    fun createSub(subscribe: SubscribeModel) {
+    fun createSub(subscribe: GetSubscribeModel) {
         viewModelScope.launch {
             cashSubscribeUseCase(subscribe)
         }

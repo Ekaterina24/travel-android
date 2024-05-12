@@ -174,9 +174,9 @@
 
                 <LinearLayout
                     android:id="@+id/containerAudio"
-                    android:orientation="horizontal"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
 
                     <TextView
                         android:id="@+id/tvAudio"
@@ -190,9 +190,9 @@
                         android:id="@+id/linearProgressBar"
                         android:layout_width="250dp"
                         android:layout_height="wrap_content"
+                        android:progress="0"
                         android:progressTint="@color/green"
                         android:thumb="@drawable/thumb"
-                        android:progress="0"
                         android:thumbTint="@color/green"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toStartOf="@+id/fStartStop"
@@ -228,7 +228,58 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/tvAudio"
                         app:layout_constraintVertical_bias="0.0" />
+
                 </LinearLayout>
+
+                <Button
+                    android:id="@+id/btnCreateReview"
+                    android:text="Оставить отзыв"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <LinearLayout
+                    android:id="@+id/containerReview"
+                    android:visibility="gone"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <EditText
+                        android:id="@+id/etReview"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ems="10"
+                        android:gravity="start|top"
+                        android:hint="Текст отзыва"
+                        android:inputType="textMultiLine" />
+
+                    <RatingBar
+                        android:id="@+id/ratingBar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:numStars="5"
+                        android:stepSize="1" />
+
+                    <Button
+                        android:id="@+id/btnSaveReview"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Отправить" />
+                </LinearLayout>
+
+                <TextView
+                    android:text="Отзывы"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvReviewList"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    tools:listitem="@layout/review_item" />
 
             </LinearLayout>
 

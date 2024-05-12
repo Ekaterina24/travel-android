@@ -7,25 +7,23 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.example.travel.MainActivity
 import com.example.travel.R
+import com.example.travel.data.local.prefs.SharedPreferences
 import com.example.travel.databinding.FragmentAuthBinding
 import com.example.travel.domain.model.LoginModel
-import com.example.travel.domain.model.RegisterModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.example.travel.data.local.prefs.SharedPreferences
-import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.onEach
 
 
 class AuthFragment : Fragment() {
 
-    private val viewModel: AuthViewModel by viewModels {
+    private val viewModel: AuthViewModel by activityViewModels {
         AuthViewModelFactory()
     }
 
@@ -36,14 +34,9 @@ class AuthFragment : Fragment() {
     private var _binding: FragmentAuthBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var name: String
     private lateinit var email: String
     private lateinit var password: String
 
-//    private val token = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InVzZXIyIiwiaWF0IjoxNzExNTQ1MTgwLCJleHAiOjE3MTE2MzE1ODB9.I7y-2Vz_CtS6dcxm4lmGgheqq3nms-D9VjZiwfxdEtA"
-
-//    private var arrayData = mutableListOf<String>()
-//    private val args by navArgs<CalendarFragmentArgs>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -56,19 +49,6 @@ class AuthFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.btnRegister.setOnClickListener {
-            with(binding) {
-                name = tvName.text.toString()
-                email = tvEmail.text.toString()
-                password = tvPassword.text.toString()
-            }
-            viewModel.registerUser(RegisterModel(name, email, password))
-        }
-
-//        viewModel.loginUser(LoginModel("user5@yandex.ru", "Df4f%bn%d"))
-//        viewModel.loginUser(LoginModel("user5@yandex.ru", "Df4f%bn%d"))
-
-
         binding.tvEmail.doAfterTextChanged {
             email = it.toString()
             Log.d("MY_TAG", "email: $it")
@@ -76,6 +56,11 @@ class AuthFragment : Fragment() {
 
         binding.tvPassword.doAfterTextChanged {
             password = it.toString()
+        }
+
+        binding.btnSkip.setOnClickListener {
+            findNavController().navigate(R.id.action_controlFragment_to_mapFragment)
+            (activity as MainActivity).binding.bottomNav.visibility = View.VISIBLE
         }
 
         binding.btnLogin.setOnClickListener {
@@ -86,10 +71,13 @@ class AuthFragment : Fragment() {
                 viewModel.userToken.collect {
                     async {
                         sharedPreferences.save("token", it.accessToken)
+                        sharedPreferences.save("token_expire_in", it.expiresIn.toString())
+                        (activity as MainActivity).saveAuthTime()
                     }.await()
                     withContext(Dispatchers.Main) {
+                        (activity as MainActivity).binding.bottomNav.visibility = View.VISIBLE
                         binding.progressBar.visibility = View.GONE
-                        findNavController().navigate(R.id.action_authFragment_to_mapFragment)
+                        findNavController().navigate(R.id.action_controlFragment_to_mapFragment)
                     }
                 }
             }

@@ -240,7 +240,7 @@ tools:context=".presentation.weather.WeatherFragment">
         android:text="Рекомендации на день"
         android:textStyle="bold"
         android:textColor="@color/white"
-        app:layout_constraintBottom_toBottomOf="@+id/progressBar"
+        app:layout_constraintBottom_toTopOf="@+id/blurViewRecommend"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 

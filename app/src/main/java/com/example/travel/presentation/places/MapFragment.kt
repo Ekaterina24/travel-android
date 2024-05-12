@@ -13,7 +13,6 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Location
 import android.location.LocationManager
-import android.media.MediaPlayer
 //import com.example.travel.R
 //import com.example.gpstrackerapp.R
 import android.net.Uri
@@ -32,7 +31,6 @@ import android.view.ViewGroup
 import android.widget.AdapterView
 import android.view.View.OnClickListener
 import android.widget.ArrayAdapter
-import android.widget.ImageButton
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
@@ -42,9 +40,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getDrawable
-import androidx.core.content.ContextCompat.getSystemService
-import androidx.core.content.res.ResourcesCompat
+import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
@@ -55,15 +53,19 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.travel.MainActivity
 import com.example.travel.data.local.prefs.SharedPreferences
 import com.example.travel.databinding.FragmentMapBinding
-import com.example.travel.domain.model.AudioModel
 import com.example.travel.domain.model.CategoryModel
 import com.example.travel.domain.model.DayPlaceModel
 import com.example.travel.domain.model.PlaceModel
+import com.example.travel.domain.model.UpdateScoresRequest
+import com.example.travel.domain.model.UserProfileModel
+import com.example.travel.domain.model.review.CreateReviewModel
+import com.example.travel.domain.model.review.ReviewAdapterModel
 import com.example.travel.presentation.auth.AuthViewModel
 import com.example.travel.presentation.auth.AuthViewModelFactory
 import com.example.travel.presentation.calendar.CalendarViewModel
 import com.example.travel.presentation.calendar.CalendarViewModelFactory
-import com.example.travel.presentation.calendar.DayListByUserAdapter
+import com.example.travel.presentation.profile.ProfileViewModel
+import com.example.travel.presentation.profile.ProfileViewModelFactory
 import com.example.travel.presentation.service.AudioData
 import com.example.travel.presentation.service.AudioService
 import com.example.travel.presentation.utils.DialogManager
@@ -71,7 +73,7 @@ import com.example.travel.presentation.utils.addPermissionToRequestedList
 import com.example.travel.presentation.utils.checkPermissionGranted
 import com.example.travel.presentation.utils.showToast
 import com.example.travel.presentation.utils.textChangedFlow
-import com.example.travel.presentation.weather.ForecastAdapter
+import com.musfickjamil.snackify.Snackify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
@@ -95,8 +97,6 @@ import java.util.Locale
 import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.cos
-import kotlin.math.pow
-import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.math.sqrt
 
@@ -139,14 +139,17 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
     private lateinit var outputPath: String
     var filePath = ""
 
+    private lateinit var currentUser: UserProfileModel
+
     private var isFineLocationPermissionGranted = false
     private var isCoarseLocationPermissionGranted = false
     private var isBackgroundLocationPermissionGranted = false
     private var isReadPermissionGranted = false
     private var isWritePermissionGranted = false
 
-//    val rvAdapterPlace: PlaceListAdapter by lazy { PlaceListAdapter() }
+    //    val rvAdapterPlace: PlaceListAdapter by lazy { PlaceListAdapter() }
     private var firstStart = false
+    private var fl = false
 
     private lateinit var pLauncher: ActivityResultLauncher<Array<String>>
 
@@ -154,8 +157,8 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
     private var category = ""
     private var search = ""
 
-    var placeId = ""
-   private var placeIsFav = false
+    var placeStringId = ""
+    private var placeIsFav = false
     private var tts: TextToSpeech? = null
     var text = ""
 
@@ -163,6 +166,12 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
     private var flag = false
 
     lateinit var cluster: RadiusMarkerClusterer
+    private lateinit var review: String
+    private lateinit var token: String
+
+    private val viewModelProfile: ProfileViewModel by activityViewModels {
+        ProfileViewModelFactory()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -242,10 +251,22 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
         registerReceiver()
         checkServiceState()
         locationUpdates()
-        val token = "Bearer ${sharedPreferences.getStringValue("token")}"
+        token = "Bearer ${sharedPreferences.getStringValue("token")}"
 //        viewModel.getCityList()
         viewModel.getCityData()
 //        viewModel.upload()
+
+        if ((activity as MainActivity).checkAuthTime()) {
+            Log.d("MY_TAG", "auth: ")
+
+            viewModelProfile.uploadUserProfile(token)
+            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                viewModelProfile.userProfile.collect { user ->
+                    currentUser = user
+                }
+            }
+        }
+
         Log.d("MY_TAG", "token: ${sharedPreferences.getStringValue("token")}")
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             viewModel.cityList.collect {
@@ -356,41 +377,16 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
             }
         }
 
-
         val rvAdapter = PlaceListAdapter(
             object : PlaceActionListener {
-//                override fun onChoosePlace(place: PlaceModel) {
-//                    Log.d("MY_TAG", "args: ${args?.get(1).toString().toLong()}}")
-//                    viewModelCalendar.addDayPlace(
-//                        token,
-//                        DayPlaceModel(
-//                            placeId = place.id,
-//                            dateVisiting = args?.get(0).toString(),
-//                            tripId = args?.get(1).toString().toInt(),
-//                        )
-//                    )
-//                }
-
                 override fun getPlaceId(genId: Long) {
-//                    placeId = id
-                   viewModel.uploadPlaceFromDb(genId)
-
-//                    binding.container.visibility = View.VISIBLE
-//                    Log.d("MyLog", "placeId: $placeId")
-//
-//                    viewModel.getAudioListByPlace(placeId)
-//                    viewModel.getPlaceById(placeId)
+                    viewModel.uploadPlaceFromDb(genId)
 
                     viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                         viewModel.place.collect { place ->
-
                             placeIsFav = place.is_favourite
-                            Log.d("TAG", "getPlaceId: $genId, placeIsNotFav $placeIsFav")
                             viewModel.updatePlaceFavorite(!placeIsFav, genId)
                             viewModel.getPlaceListData(cityId, search, category)
-//                            withContext(Dispatchers.Main) {
-//                                binding.im
-//                            }
                         }
                     }
 
@@ -408,28 +404,6 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
 
         )
 
-
-
-//        viewLifecycleOwner.lifecycleScope.launch {
-//            viewModel.placeList.collect {
-//                Log.d("MY_TAG", "onViewCreated: $it")
-//                rvAdapter.submitList(it)
-//            }
-//        }
-
-
-//        val rvAdapter = AudioListByPlaceAdapter(
-//            object : AudioActionListener {
-//                override fun playAudio(audio: AudioModel) {
-//                    Log.d(TAG, "playAudio: ${audio.text}")
-//                    if (audio.text.isEmpty()) return
-//                    speakOut(audio.text)
-//                }
-//            }
-//        )
-
-
-//        binding.rvPlaceList.adapter = rvAdapterPlace
         binding.rvPlaceList.adapter = rvAdapter
 
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
@@ -442,14 +416,11 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
                             newList.add(item)
                         }
                     }
-//                    rvAdapterPlace.submitList(newList)
                     rvAdapter.submitList(newList)
                 }
 
             }
         }
-
-//        binding.rvAudioList.adapter = rvAdapter
 
         binding.btnPlaceList.setOnClickListener {
             binding.apply {
@@ -462,6 +433,9 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
             binding.container.visibility = View.GONE
             binding.placeListContainer.visibility = View.GONE
         }
+
+        val rvReviewAdapter = ReviewAdapter()
+        binding.rvReviewList.adapter = rvReviewAdapter
 
 //        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
 //            viewModel.audioListByPlace.collect {
@@ -502,160 +476,217 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
 //        }
 
         binding.map.setMultiTouchControls(true)
-//        binding.map
+
 
 
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             viewModel.placeList.collect {
 //                withContext(Dispatchers.Main) {
-                    binding.map.overlays.clear()
-                    cluster.items.clear()
-                    it.map { place ->
-                        if (place.subTypePlace != "city") {
-                            val point =
-                                GeoPoint(place.latitude.toDouble(), place.longitude.toDouble())
-                            val marker = Marker(binding.map)
-                            marker.position = point
-                            marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                            if (place.subTypePlace == "place") {
+                binding.map.overlays.clear()
+                cluster.items.clear()
+                it.map { place ->
+                    if (place.subTypePlace != "city") {
+                        val point =
+                            GeoPoint(place.latitude.toDouble(), place.longitude.toDouble())
+                        val marker = Marker(binding.map)
+                        marker.position = point
+                        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                        if (place.subTypePlace == "place") {
+                            marker.icon = getDrawable(
+                                requireContext(),
+                                com.example.travel.R.drawable.ic_tree
+                            )
+                        }
+                        if (place.typePlace == "building") {
+                            marker.icon = getDrawable(
+                                requireContext(),
+                                com.example.travel.R.drawable.ic_museum
+                            )
+                        }
+                        if (place.typePlace == "attraction") {
+                            marker.icon = getDrawable(
+                                requireContext(),
+                                com.example.travel.R.drawable.ic_monument
+                            )
+                        }
+                        if (place.typePlace == "branch") {
+                            if (place.name.lowercase()
+                                    .contains("магазин") || place.name.lowercase()
+                                    .contains("супермаркет") || place.name.lowercase()
+                                    .contains("гипермаркет") || place.name.lowercase()
+                                    .contains("дискаунтер")
+                            ) {
                                 marker.icon = getDrawable(
                                     requireContext(),
-                                    com.example.travel.R.drawable.ic_tree
+                                    com.example.travel.R.drawable.ic_supermarket
                                 )
-                            }
-                            if (place.typePlace == "building") {
+                            } else {
                                 marker.icon = getDrawable(
                                     requireContext(),
-                                    com.example.travel.R.drawable.ic_museum
+                                    com.example.travel.R.drawable.ic_restaurant
                                 )
                             }
-                            if (place.typePlace == "attraction") {
-                                marker.icon = getDrawable(
-                                    requireContext(),
-                                    com.example.travel.R.drawable.ic_monument
-                                )
-                            }
-                            if (place.typePlace == "branch") {
-                                if (place.name.lowercase()
-                                        .contains("магазин") || place.name.lowercase()
-                                        .contains("супермаркет") || place.name.lowercase()
-                                        .contains("гипермаркет") || place.name.lowercase()
-                                        .contains("дискаунтер")
-                                ) {
-                                    marker.icon = getDrawable(
-                                        requireContext(),
-                                        com.example.travel.R.drawable.ic_supermarket
-                                    )
-                                } else {
-                                    marker.icon = getDrawable(
-                                        requireContext(),
-                                        com.example.travel.R.drawable.ic_restaurant
-                                    )
-                                }
 //                                if (place.name.lowercase().contains("кафе") || place.name.lowercase().contains("ресторан") || place.name.lowercase().contains("бар")) {
 //                                    marker.icon = getDrawable(
 //                                        requireContext(),
 //                                        com.example.travel.R.drawable.ic_restaurant
 //                                    )
 //                                }
+                        }
+
+
+                        marker.setOnMarkerClickListener { _, _ ->
+                            placeStringId = place.id
+                            service?.stopPlayer()
+                            binding.linearProgressBar.progress = 0
+                            if (placeStringId.isNotEmpty()) {
+                                viewModel.getReviewListByPlace(placeStringId)
                             }
+                            binding.map.controller.setZoom(19.0)
+                            binding.map.controller.animateTo(
+                                GeoPoint(
+                                    place.latitude.toDouble(),
+                                    place.longitude.toDouble()
+                                ), 19.0, 2
+                            )
+                            binding.container.visibility = View.VISIBLE
+                            binding.detailContainer.visibility = View.VISIBLE
 
+                            clearFileContents(filePath)
 
-                            marker.setOnMarkerClickListener { _, _ ->
-                                service?.stopPlayer()
-                                binding.linearProgressBar.progress = 0
+                            viewModel.getAudioListByPlace(place.id)
+                            viewModel.getPlaceById(place.id)
+                            viewModelProfile.getUserList()
 
-                                binding.map.controller.setZoom(19.0)
-                                binding.map.controller.animateTo(
-                                    GeoPoint(
-                                        place.latitude.toDouble(),
-                                        place.longitude.toDouble()
-                                    ), 19.0, 2
-                                )
-                                binding.container.visibility = View.VISIBLE
-                                binding.detailContainer.visibility = View.VISIBLE
-
-                                clearFileContents(filePath)
-
-                                viewModel.getAudioListByPlace(place.id)
-                                viewModel.getPlaceById(place.id)
-
-                                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                                    viewModel.place.collect { currentPlace ->
+                            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                                viewModel.reviewListByPlace.collect { reviewList ->
+                                    viewModelProfile.userList.collect { userList ->
                                         withContext(Dispatchers.Main) {
-                                            with(binding) {
-                                                name.text = currentPlace.name
-                                                tvType.text = currentPlace.typePlace
-                                                tvAddress.text = currentPlace.addressId
-
-                                                if (currentPlace.description != " ") {
-                                                    tvDesc.visibility = View.VISIBLE
-                                                    tvDesc.text = currentPlace.description
-                                                    text = currentPlace.description
-                                                } else {
-                                                    tvDesc.visibility = View.GONE
-                                                }
-
-                                                btnClose.setOnClickListener {
-                                                    container.visibility = View.GONE
-                                                    detailContainer.visibility = View.GONE
-                                                }
-
-//                                                btnGo.setOnClickListener {
-//                                                    val lat = currentPlace.latitude
-//                                                    val lon = currentPlace.longitude
-//                                                }
-                                                setOnClicks(currentPlace.latitude, currentPlace.longitude)
-
-                                                btnAddPlace.setOnClickListener {
-                                                    if (args.isNullOrEmpty()) {
-                                                        Toast.makeText(
-                                                            requireContext(),
-                                                            "Выберите в календаре день, в который хотите посетить выбранное место!",
-                                                            Toast.LENGTH_SHORT
-                                                        )
-                                                            .show()
-                                                    } else {
-                                                        viewModelCalendar.addDayPlace(
-                                                            token,
-                                                            DayPlaceModel(
-                                                                placeId = place.id,
-                                                                dateVisiting = args[0].toString(),
-                                                                tripId = args[1].toString().toInt(),
+                                            val newList = mutableListOf<ReviewAdapterModel>()
+                                            reviewList.map { review ->
+                                                userList.map { user ->
+                                                    if (review.userId == user.id) {
+                                                        newList.add(
+                                                            ReviewAdapterModel(
+                                                                userName = user.username,
+                                                                text = review.text,
+                                                                rating = review.rating,
+                                                                date = review.date
                                                             )
                                                         )
                                                     }
                                                 }
                                             }
+
+                                            Log.d(TAG, "rvReviewList: $newList")
+                                            rvReviewAdapter.submitList(newList)
+                                        }
+                                    }
+
+                                }
+                            }
+
+                            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                                viewModel.place.collect { currentPlace ->
+                                    withContext(Dispatchers.Main) {
+                                        with(binding) {
+                                            name.text = currentPlace.name
+                                            tvType.text = currentPlace.typePlace
+                                            tvAddress.text = currentPlace.addressId
+
+                                            if (currentPlace.description != " ") {
+                                                tvDesc.visibility = View.VISIBLE
+                                                tvDesc.text = currentPlace.description
+                                                text = currentPlace.description
+                                            } else {
+                                                tvDesc.visibility = View.GONE
+                                            }
+
+                                            btnClose.setOnClickListener {
+                                                container.visibility = View.GONE
+                                                detailContainer.visibility = View.GONE
+                                            }
+
+                                            binding.containerReview.visibility = View.GONE
+                                            binding.btnCreateReview.setOnClickListener {
+                                                binding.containerReview.visibility =
+                                                    View.VISIBLE
+                                            }
+
+                                            binding.etReview.doAfterTextChanged { text ->
+                                                review = text.toString()
+                                            }
+
+                                            binding.btnSaveReview.setOnClickListener {
+                                                viewModel.createReview(
+                                                    token, CreateReviewModel(
+                                                        placeId = currentPlace.id,
+                                                        text = review,
+                                                        rating = binding.ratingBar.rating.toInt(),
+                                                    )
+                                                )
+                                                Snackify.success(
+                                                    binding.detailContainer,
+                                                    "Отзыв успешно добавлен!",
+                                                    Snackify.LENGTH_LONG
+                                                ).show()
+                                                binding.containerReview.visibility = View.GONE
+                                            }
+
+                                            setOnClicks(
+                                                currentPlace.latitude,
+                                                currentPlace.longitude
+                                            )
+
+                                            btnAddPlace.setOnClickListener {
+                                                if (args.isNullOrEmpty()) {
+                                                    Toast.makeText(
+                                                        requireContext(),
+                                                        "Выберите в календаре день, в который хотите посетить выбранное место!",
+                                                        Toast.LENGTH_SHORT
+                                                    )
+                                                        .show()
+                                                } else {
+                                                    viewModelCalendar.addDayPlace(
+                                                        token,
+                                                        DayPlaceModel(
+                                                            placeId = place.id,
+                                                            dateVisiting = args[0].toString(),
+                                                            tripId = args[1].toString().toInt(),
+                                                        )
+                                                    )
+                                                }
+                                            }
                                         }
                                     }
                                 }
+                            }
 
-                                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                                    viewModel.audioListByPlace.collect { audioList ->
-                                        withContext(Dispatchers.Main) {
+                            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                                viewModel.audioListByPlace.collect { audioList ->
+                                    withContext(Dispatchers.Main) {
 //                                binding.audio.text = audioList.toString()
-                                            if (audioList.isNotEmpty()) {
-                                                text = audioList[0].text
-                                            } else {
-                                                binding.containerAudio.visibility = View.GONE
-                                            }
+                                        if (audioList.isNotEmpty()) {
+                                            text = audioList[0].text
+                                        } else {
+                                            binding.containerAudio.visibility = View.GONE
+                                        }
 //                                            if (place.description.isNotEmpty())
 //                                                text = audioList[0].text
 //                                            }
-                                            Log.d("MY_TAG", "audioList: ${audioList.isNotEmpty()}")
+                                        Log.d("MY_TAG", "audioList: ${audioList.isNotEmpty()}")
 //                                    if (audioList.isNotEmpty())
 //                                        text = audioList[0].desc
 //                                    Log.d(TAG, "text: $text")
-                                        }
                                     }
                                 }
-
-                                true
                             }
-                            cluster.add(marker)
 
+                            true
                         }
+                        cluster.add(marker)
+
+                    }
 
 //                    }
                 }
@@ -683,7 +714,8 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
     private val receiverLoc = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == LocationService.LOC_MODEL_INTENT) {
-                val locModel = intent.getSerializableExtra(LocationService.LOC_MODEL_INTENT) as LocationModel
+                val locModel =
+                    intent.getSerializableExtra(LocationService.LOC_MODEL_INTENT) as LocationModel
                 viewModel.locationUpdates.value = locModel
             }
         }
@@ -709,7 +741,6 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
             }
         }
     }
-
 
 
     private fun startStopService() {
@@ -741,18 +772,35 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
                 it.geoPointsList.last().longitude,
 //                55.784181,
 //                37.711021
-                55.670020,37.279790
+                55.670020, 37.279790
             )
             Log.d("MY_TAG", "it.geoPointsList.last(): ${it.geoPointsList.last()} ")
 
+
+
+
             if (distance <= 20) {
-                Toast.makeText(requireContext(), "Рядом!", Toast.LENGTH_SHORT).show()
+//                viewModelProfile.
+                fl = true
                 activity?.stopService(Intent(activity, LocationService::class.java))
                 viewModel.updatePlaceVisited(true, 1)
                 viewModel.getPlaceListData(cityId, search, category)
+                Log.d("MY_TAG", "token: ${token} ")
+
+                if ((activity as MainActivity).checkAuthTime()) {
+                    viewModelProfile.updateScoresFromApi(token, UpdateScoresRequest(currentUser.scores + 10))
+                    Toast.makeText(requireContext(), "Рядом + 10!", Toast.LENGTH_SHORT).show()
+
+                } else {
+                    Toast.makeText(requireContext(), "Рядом!", Toast.LENGTH_SHORT).show()
+
+                }
+
             } else {
                 Toast.makeText(requireContext(), "Не рядом!", Toast.LENGTH_SHORT).show()
             }
+//            }
+
 
 //            if (it.geoPointsList.last())
         }
@@ -763,7 +811,7 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
     }
 
     private fun fillPolyline(list: List<GeoPoint>) {
-        list.forEach{
+        list.forEach {
             pl?.addPoint(it)
         }
     }
@@ -1010,7 +1058,8 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
                         )
 
                         // Установка слушателя для отслеживания успешного сохранения
-                        tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                        tts?.setOnUtteranceProgressListener(object :
+                            UtteranceProgressListener() {
                             override fun onStart(utteranceId: String?) {
                                 // Called when the TTS starts speaking
                             }
@@ -1248,6 +1297,12 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
             tts!!.shutdown()
         }
         super.onDestroyView()
+    }
+
+    private fun openRegisterFragment() {
+        if (!(activity as MainActivity).checkAuthTime()) {
+            findNavController().navigate(com.example.travel.R.id.requireRegisterFragment)
+        }
     }
 
 }

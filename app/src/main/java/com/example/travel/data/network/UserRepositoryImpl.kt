@@ -8,6 +8,7 @@ import com.example.travel.domain.model.CityModel
 import com.example.travel.domain.model.LoginModel
 import com.example.travel.domain.model.RegisterModel
 import com.example.travel.domain.model.TokenModel
+import com.example.travel.domain.model.UpdateScoresRequest
 import com.example.travel.domain.model.UserModel
 import com.example.travel.domain.model.UserProfileModel
 import com.example.travel.domain.repository.UserRepository
@@ -28,11 +29,19 @@ class UserRepositoryImpl(
     }
 
     override suspend fun updateUser() {
-//        TODO("Not yet implemented")
+//        RetrofitInstance.travelApi.
     }
 
     override suspend fun getUserProfile(token: String): UserProfileModel {
        return mapper.mapDtoToModel(RetrofitInstance.travelApi.getUserProfile(token))
+    }
+
+    override suspend fun getUserList(): List<UserProfileModel> {
+        return mapper.mapListDtoToList(RetrofitInstance.travelApi.getUserList())
+    }
+
+    override suspend fun updateScoresFromApi(token: String, scores: UpdateScoresRequest) {
+        RetrofitInstance.travelApi.updateScoresFromApi(token, scores)
     }
 
     override suspend fun insertUser(user: UserProfileModel) {

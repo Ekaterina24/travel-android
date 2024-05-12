@@ -1,15 +1,17 @@
 package com.example.travel.domain.repository
 
-import com.example.travel.data.local.db.SubscribeItem
-import com.example.travel.domain.model.CategoryModel
-import com.example.travel.domain.model.PlaceModel
-import com.example.travel.domain.model.SubscribeModel
-import kotlinx.coroutines.flow.Flow
+import com.example.travel.domain.model.CreateSubscribeModel
+import com.example.travel.domain.model.GetSubscribeModel
 
 interface SubscribeRepository {
 
-    suspend fun insertSubscribe(subscribe: SubscribeModel)
-    suspend fun insertSubscribeList(subscribeList: List<SubscribeModel>)
-    suspend fun observeSubscribeList(): List<SubscribeModel>
+    // Network
+    suspend fun createSubscribe(token: String, createSubscribeModel: CreateSubscribeModel)
+    suspend fun getSubscribeListByUser(token: String): List<GetSubscribeModel>
+
+    // Local
+    suspend fun insertSubscribe(subscribe: GetSubscribeModel)
+    suspend fun insertSubscribeList(subscribeList: List<GetSubscribeModel>)
+    suspend fun observeSubscribeList(): List<GetSubscribeModel>
 //    fun observeSubscribeList(): Flow<List<SubscribeModel>>
 }
