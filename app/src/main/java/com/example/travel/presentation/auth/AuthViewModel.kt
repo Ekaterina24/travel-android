@@ -7,6 +7,7 @@ import com.example.travel.App
 import com.example.travel.data.network.DayPlacesRepositoryImpl
 import com.example.travel.data.network.TripRepositoryImpl
 import com.example.travel.data.network.UserRepositoryImpl
+import com.example.travel.domain.ApiResponse
 import com.example.travel.domain.model.DayPlaceModel
 import com.example.travel.domain.model.GetTripListModel
 import com.example.travel.domain.model.LoginModel
@@ -24,6 +25,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 
@@ -50,14 +52,25 @@ class AuthViewModel(
     private var _userToken = MutableSharedFlow<TokenModel>()
     var userToken = _userToken.asSharedFlow()
 
+    private var _registerResult = MutableSharedFlow<ApiResponse<Unit>>()
+    var registerResult = _registerResult.asSharedFlow()
+
+    private var _loginResult = MutableSharedFlow<ApiResponse<TokenModel>>()
+    var loginResult = _loginResult.asSharedFlow()
+
     fun registerUser(user: RegisterModel) {
         viewModelScope.launch(Dispatchers.IO) {
-            registerUserUseCase(user)
+            registerUserUseCase(user).collect {
+                _registerResult.emit(it)
+            }
         }
     }
+
     fun loginUser(user: LoginModel) {
         viewModelScope.launch(Dispatchers.IO) {
-            _userToken.emit(loginUserUseCase(user))
+            loginUserUseCase(user).collect {
+                _loginResult.emit(it)
+            }
         }
     }
 }

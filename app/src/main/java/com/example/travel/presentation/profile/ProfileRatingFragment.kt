@@ -9,12 +9,8 @@ import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.travel.data.local.prefs.SharedPreferences
-import com.example.travel.databinding.FragmentProfileActionsBinding
 import com.example.travel.databinding.FragmentProfileRatingBinding
-import com.example.travel.domain.model.CreateSubscribeModel
 import com.example.travel.domain.model.PlaceModel
-import com.example.travel.domain.model.TypeSubModel
-import com.example.travel.domain.model.UserProfileModel
 import com.example.travel.domain.model.UserSubscribeAdapterModel
 import com.example.travel.domain.model.review.ReviewAdapterModel
 import com.example.travel.presentation.places.PlaceActionListener
@@ -44,7 +40,7 @@ class ProfileRatingFragment : Fragment() {
         SharedPreferences(requireContext())
     }
 
-    private lateinit var currentUser: UserProfileModel
+//    private lateinit var currentUser: UserProfileModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -94,28 +90,37 @@ class ProfileRatingFragment : Fragment() {
         }
 
         viewModelProfile.getUserList()
+
         viewModelProfile.uploadUserProfile(token)
-        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            viewModelProfile.userProfile.collect {
-                currentUser = it
-            }
-        }
-        val rvRatingAdapter = RatingListAdapter(object : UserIdentification {
-            override fun isCurrentUser(userId: Long): Boolean {
-                return currentUser.id == userId
-            }
-        }
-        )
-        binding.rvRating.adapter = rvRatingAdapter
 
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            viewModelProfile.userList.collect {
+            viewModelProfile.userProfile.collect { user ->
+
+
+                val rvRatingAdapter = RatingListAdapter(object : UserIdentification {
+                    override fun isCurrentUser(userId: Long): Boolean {
+                        return user.id == userId
+                    }
+                }
+                )
+                
                 withContext(Dispatchers.Main) {
-                    rvRatingAdapter.submitList(it)
+                    binding.rvRating.adapter = rvRatingAdapter
+                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                        viewModelProfile.userList.collect { userList ->
+                            withContext(Dispatchers.Main) {
+                                rvRatingAdapter.submitList(userList.sortedByDescending { it.scores })
+                            }
+
+                        }
+                    }
                 }
 
+
             }
         }
+
+
 
 
     }

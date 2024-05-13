@@ -133,6 +133,33 @@ class PlacesViewModel(
         }
     }
 
+    fun uploadPlaceFromDb(generatedId: Long, cityId: Int, search: String, category: String) {
+        viewModelScope.launch {
+
+
+            kotlin.runCatching {
+//                if  (_cityList.first().isEmpty()) {
+//                    cashCityListCase(getCityListCase())
+//                _isLoading.value = tru
+//                }
+                uploadPlaceUseCase(generatedId)
+
+            }.fold(
+                onSuccess = {
+                    _place.emit(it)
+                    updatePlaceFavorite(!it.is_favourite, generatedId)
+                    getPlaceListData(cityId, search, category)
+                },
+                onFailure = { Log.e("TAG", "${it.message}: ", it) }
+            )
+        }
+    }
+
+    suspend fun getPlaceFromDbApi(id: String) = uploadPlaceUseCase.getPlaceByIdFromApi(id)
+
+    suspend fun getPlaceListFromDb(cityId: Int, search: String, category: String)
+            = getPlaceListCase.getData(cityId, search, category)
+
     fun getCategoryList() {
         viewModelScope.launch(Dispatchers.IO) {
             _categoryList.emit(getCategoryListUseCase())

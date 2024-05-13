@@ -77,6 +77,7 @@ class CalendarViewModel(
     fun createTrip(token: String, trip: TripModel) {
         viewModelScope.launch {
             createTripUseCase(token, trip)
+            getTripListByUser(token)
         }
     }
 

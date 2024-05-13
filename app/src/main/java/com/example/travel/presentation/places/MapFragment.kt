@@ -367,7 +367,7 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
             requireContext(), LinearLayoutManager.HORIZONTAL, false
         )
 
-//        viewModel.getCategoryList()
+        viewModel.getCategoryList()
 
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             viewModel.categoryList.collect { list ->
@@ -380,15 +380,14 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
         val rvAdapter = PlaceListAdapter(
             object : PlaceActionListener {
                 override fun getPlaceId(genId: Long) {
-                    viewModel.uploadPlaceFromDb(genId)
-
-                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                        viewModel.place.collect { place ->
-                            placeIsFav = place.is_favourite
-                            viewModel.updatePlaceFavorite(!placeIsFav, genId)
-                            viewModel.getPlaceListData(cityId, search, category)
-                        }
-                    }
+                    viewModel.uploadPlaceFromDb(genId, cityId, search, category) //get
+//                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+//                        viewModel.place.collect { place ->
+//                            placeIsFav = place.is_favourite
+//                            viewModel.updatePlaceFavorite(!placeIsFav, genId)
+//                            viewModel.getPlaceListData(cityId, search, category)
+//                        }
+//                    }
 
 //                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
 //                        viewModel.audioListByPlace.collect { audioList ->

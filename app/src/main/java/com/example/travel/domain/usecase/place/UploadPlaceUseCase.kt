@@ -8,4 +8,7 @@ import com.example.travel.domain.repository.PlaceRepository
 class UploadPlaceUseCase(private val repo: PlaceRepository) {
     suspend operator fun invoke(generatedId: Long): PlaceModel =
         repo.observePlaceById(generatedId)
+
+    suspend fun getPlaceByIdFromApi(placeId: String): PlaceModel =
+        repo.observePlaceByIdFromApi(placeId)
 }

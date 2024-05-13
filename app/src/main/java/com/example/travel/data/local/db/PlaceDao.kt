@@ -23,6 +23,9 @@ interface PlaceDao {
     @Query("SELECT * FROM place_item WHERE generatedId = :generatedId")
     suspend fun observePlaceById(generatedId: Long): PlaceItem
 
+    @Query("SELECT * FROM place_item WHERE id = :id")
+    suspend fun observePlaceByIdFromApi(id: String): PlaceItem
+
     @Query("UPDATE place_item SET isVisited = :isVisited WHERE generatedId = :generatedId")
     suspend fun updateIsVisited(isVisited: Boolean, generatedId: Long)
 

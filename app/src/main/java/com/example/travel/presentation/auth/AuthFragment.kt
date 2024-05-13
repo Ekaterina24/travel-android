@@ -14,9 +14,12 @@ import com.example.travel.MainActivity
 import com.example.travel.R
 import com.example.travel.data.local.prefs.SharedPreferences
 import com.example.travel.databinding.FragmentAuthBinding
+import com.example.travel.domain.ApiResponse
 import com.example.travel.domain.model.LoginModel
+import com.musfickjamil.snackify.Snackify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -64,20 +67,51 @@ class AuthFragment : Fragment() {
         }
 
         binding.btnLogin.setOnClickListener {
-            binding.progressBar.visibility = View.VISIBLE
-            viewModel.loginUser(LoginModel(email, password))
 
             viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-                viewModel.userToken.collect {
-                    async {
-                        sharedPreferences.save("token", it.accessToken)
-                        sharedPreferences.save("token_expire_in", it.expiresIn.toString())
-                        (activity as MainActivity).saveAuthTime()
-                    }.await()
-                    withContext(Dispatchers.Main) {
-                        (activity as MainActivity).binding.bottomNav.visibility = View.VISIBLE
-                        binding.progressBar.visibility = View.GONE
-                        findNavController().navigate(R.id.action_controlFragment_to_mapFragment)
+//                viewModel.userToken.collect {
+//                    async {
+//                        sharedPreferences.save("token", it.accessToken)
+//                        sharedPreferences.save("token_expire_in", it.expiresIn.toString())
+//                        (activity as MainActivity).saveAuthTime()
+//                    }.await()
+//                    withContext(Dispatchers.Main) {
+//                        (activity as MainActivity).binding.bottomNav.visibility = View.VISIBLE
+//                        binding.progressBar.visibility = View.GONE
+//                        findNavController().navigate(R.id.action_controlFragment_to_mapFragment)
+//                    }
+//                }
+                with(binding) {
+                    email = tvEmail.text.toString()
+                    password = tvPassword.text.toString()
+                }
+                viewModel.loginUser(LoginModel(email, password))
+
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    viewModel.loginResult.collectLatest {
+                        when (it) {
+                            is ApiResponse.Success -> {
+                                binding.progressBar.visibility = View.VISIBLE
+                                async {
+                                    sharedPreferences.save("token", it.value.accessToken)
+                                    (activity as MainActivity).saveAuthTime()
+                                }.await()
+                                withContext(Dispatchers.Main) {
+                                    (activity as MainActivity).binding.bottomNav.visibility =
+                                        View.VISIBLE
+                                    binding.progressBar.visibility = View.GONE
+                                    findNavController().navigate(R.id.action_controlFragment_to_mapFragment)
+                                }
+                            }
+
+                            is ApiResponse.Failure -> {
+                                Snackify.error(
+                                    binding.linearLayout,
+                                    "${it.message}",
+                                    Snackify.LENGTH_LONG
+                                ).show()
+                            }
+                        }
                     }
                 }
             }

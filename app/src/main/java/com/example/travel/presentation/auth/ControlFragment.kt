@@ -27,8 +27,8 @@ class ControlFragment : Fragment(), RegisterFragment.OnButtonClickedListener {
 
     private fun initTabLayout(){
         val context = activity?.applicationContext
-        binding.tabLayout.addTab(binding.tabLayout.newTab().setText(R.string.register))
         binding.tabLayout.addTab(binding.tabLayout.newTab().setText(R.string.login))
+        binding.tabLayout.addTab(binding.tabLayout.newTab().setText(R.string.register))
 
         val adapter = SubscribersDataCollectionAdapter(this)
         binding.viewpager.adapter = adapter
@@ -43,8 +43,8 @@ class ControlFragment : Fragment(), RegisterFragment.OnButtonClickedListener {
         FragmentStateAdapter(fragment) {
 
         val listTabName = listOf(
-            R.string.register,
-            R.string.login
+            R.string.login,
+            R.string.register
         )
 
         fun getPageTitle(position: Int, context: Context): String {
@@ -54,8 +54,8 @@ class ControlFragment : Fragment(), RegisterFragment.OnButtonClickedListener {
         override fun getItemCount(): Int = listTabName.size
         override fun createFragment(position: Int): Fragment {
             val fragment = when (position) {
-                0 -> RegisterFragment()
-                1 -> AuthFragment()
+                0 -> AuthFragment()
+                1 -> RegisterFragment()
                 else -> Fragment()
             }
             return fragment
@@ -63,7 +63,7 @@ class ControlFragment : Fragment(), RegisterFragment.OnButtonClickedListener {
     }
 
     override fun onButtonClicked() {
-        binding.viewpager.currentItem = 1
+        binding.viewpager.currentItem = 0
     }
 
 }

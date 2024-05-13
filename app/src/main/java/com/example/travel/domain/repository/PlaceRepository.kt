@@ -18,6 +18,7 @@ interface PlaceRepository {
     suspend fun insertPlaceList(placeList: List<PlaceModel>)
     suspend fun observePlaceList(): List<PlaceModel>
     suspend fun observePlaceById(generatedId: Long): PlaceModel
+    suspend fun observePlaceByIdFromApi(placeId: String): PlaceModel
     suspend fun updateIsVisited(isVisited: Boolean, generatedId: Long)
     suspend fun updateIsFavourite(isFavourite: Boolean, generatedId: Long)
     suspend fun updatePlace(placeModel: PlaceModel)

@@ -50,6 +50,10 @@ class PlaceRepositoryImpl(
         return mapper.mapDbModelToModel(dao.observePlaceById(generatedId))
     }
 
+    override suspend fun observePlaceByIdFromApi(placeId: String): PlaceModel {
+        return mapper.mapDbModelToModel(dao.observePlaceByIdFromApi(placeId))
+    }
+
     override suspend fun updateIsVisited(isVisited: Boolean, generatedId: Long) {
         dao.updateIsVisited(isVisited, generatedId)
     }

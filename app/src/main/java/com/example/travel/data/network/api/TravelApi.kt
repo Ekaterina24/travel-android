@@ -19,6 +19,7 @@ import com.example.travel.domain.model.CategoryModel
 import com.example.travel.domain.model.UpdateScoresRequest
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
@@ -32,15 +33,15 @@ import java.util.concurrent.TimeUnit
 
 //const val BASE_URL = "https://192.168.1.28:3000/"
 //const val BASE_URL = "http://10.0.2.2:3000/"
-const val BASE_URL = "https://de86-188-66-38-126.ngrok-free.app/"
+const val BASE_URL = "https://0a80-188-66-38-126.ngrok-free.app/"
 //const val BASE_URL = "http://192.168.111.242:3000/"
 
 interface TravelApi {
     @POST("auth/register")
-    suspend fun register(@Body user: UserDTO)
+    suspend fun register(@Body user: UserDTO): Response<Unit>
 
     @POST("auth/login")
-    suspend fun login(@Body user: LoginDTO): TokenDTO
+    suspend fun login(@Body user: LoginDTO): Response<TokenDTO>
 
     @GET("place")
     suspend fun getPlaces(

@@ -13,14 +13,8 @@ import com.example.travel.databinding.PlaceItemBinding
 import com.example.travel.domain.model.DayPlaceModel
 import com.example.travel.domain.model.PlaceModel
 
-//interface PlaceActionListener {
-//    fun onChoosePlace(place: PlaceModel)
-//}
-
-class DayListByUserAdapter(
-//    private val actionListener: PlaceActionListener,
-):
-    ListAdapter<DayPlaceModel, DayListByUserAdapter.DayListByUserViewHolder>(callback),
+class DayListByUserAdapter:
+    ListAdapter<PlaceModel, DayListByUserAdapter.DayListByUserViewHolder>(callback),
     View.OnClickListener
 {
 
@@ -36,19 +30,8 @@ class DayListByUserAdapter(
 
     override fun onBindViewHolder(holder: DayListByUserViewHolder, position: Int) {
         val placeItem = getItem(position)
-//        holder.binding.imageView.load(placeItem.imageUrl)
-//        holder.binding.tvName.text = placeItem.name
-
-        holder.binding.tvName.text = "tr:${placeItem.tripId} pl:${placeItem.placeId}"
-        holder.binding.tvType.text = placeItem.dateVisiting
-
-
-
-//        holder.itemView.tag = placeItem
-//        holder.binding.imageButton.tag = placeItem
-        holder.itemView.setOnClickListener {
-            Log.d("MY_TAG", "onClick: item")
-        }
+        holder.binding.tvName.text = placeItem.name
+        holder.binding.tvType.text = placeItem.typePlace
     }
 
     override fun onClick(v: View) {
@@ -61,12 +44,12 @@ class DayListByUserAdapter(
     }
 }
 
-val callback = object: DiffUtil.ItemCallback<DayPlaceModel>() {
-    override fun areItemsTheSame(oldItem: DayPlaceModel, newItem: DayPlaceModel): Boolean {
-        return oldItem.placeId == newItem.placeId
+val callback = object: DiffUtil.ItemCallback<PlaceModel>() {
+    override fun areItemsTheSame(oldItem: PlaceModel, newItem: PlaceModel): Boolean {
+        return oldItem.id == newItem.id
     }
 
-    override fun areContentsTheSame(oldItem: DayPlaceModel, newItem: DayPlaceModel): Boolean {
+    override fun areContentsTheSame(oldItem: PlaceModel, newItem: PlaceModel): Boolean {
         return oldItem == newItem
     }
 }

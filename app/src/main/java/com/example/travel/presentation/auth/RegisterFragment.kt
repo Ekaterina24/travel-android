@@ -7,12 +7,19 @@ import android.view.ViewGroup
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.travel.MainActivity
 import com.example.travel.R
 import com.example.travel.databinding.FragmentRegisterBinding
+import com.example.travel.domain.ApiResponse
 import com.example.travel.domain.model.RegisterModel
 import com.musfickjamil.snackify.Snackify
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
 class RegisterFragment : Fragment() {
 
     private val viewModel: AuthViewModel by activityViewModels {
@@ -46,7 +53,7 @@ class RegisterFragment : Fragment() {
         buttonClickListener = parentFragment as OnButtonClickedListener
 
         binding.btnRegister.setOnClickListener {
-            try {
+//            try {
                 with(binding) {
                     name = tvName.text.toString()
                     email = tvEmail.text.toString()
@@ -54,13 +61,40 @@ class RegisterFragment : Fragment() {
                 }
                 viewModel.registerUser(RegisterModel(name, email, password))
 
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    viewModel.registerResult.collectLatest {
+                        when (it) {
+                            is ApiResponse.Success -> {
+                                Snackify.success(
+                                    binding.linearLayout,
+                                    "Аккаунт создан!",
+                                    Snackify.LENGTH_LONG
+                                ).show()
+                                withContext(Dispatchers.Main) {
+                                    buttonClickListener.onButtonClicked()
+                                }
+
+                            }
+
+                            is ApiResponse.Failure -> {
+                                Snackify.error(
+                                    binding.linearLayout,
+                                    "${it.message}",
+                                    Snackify.LENGTH_LONG
+                                ).show()
+                            }
+                        }
+                    }
+                }
+
                 // if success
-                buttonClickListener.onButtonClicked()
-                Snackify.success(binding.linearLayout, "Аккаунт создан!", Snackify.LENGTH_LONG).show()
-            } catch (e: Exception) {
-                Snackify.error(binding.linearLayout, "${e.message}", Snackify.LENGTH_LONG).show()
-            }
+//                buttonClickListener.onButtonClicked()
+//                Snackify.success(binding.linearLayout, "Аккаунт создан!", Snackify.LENGTH_LONG).show()
+//            } catch (e: Exception) {
+//                Snackify.error(binding.linearLayout, "${e.message}", Snackify.LENGTH_LONG).show()
+//            }
         }
+
 
         binding.tvEmail.doAfterTextChanged {
             email = it.toString()

@@ -32,7 +32,7 @@ import java.util.Date
 data class DataForTransfer(
     val field1: String,
     val field2: Long
-): Parcelable
+) : Parcelable
 
 class CalendarFragment : Fragment() {
 
@@ -76,14 +76,6 @@ class CalendarFragment : Fragment() {
 //                    )
                 .build()
 
-        binding.btnAddAudio.setOnClickListener {
-            viewModel.addAudio(AudioModel(1, "12223", "errwrwrewrwrw", "CLOSE"))
-        }
-
-        binding.btnCreateSub.setOnClickListener {
-//            viewModel.createSub(SubscribeModel(1, 2, , Date(System.currentTimeMillis())))
-        }
-
         viewModel.uploadSub()
 
 //        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
@@ -98,7 +90,7 @@ class CalendarFragment : Fragment() {
 //        }
 
 
-                    binding.rangeDate.setOnClickListener {
+        binding.rangeDate.setOnClickListener {
 
             dateRangePicker.show(parentFragmentManager, "Выберите даты")
 //            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Default) {
@@ -129,6 +121,7 @@ class CalendarFragment : Fragment() {
                 return e.toString()
             }
         }
+
         val first = 0
         val second = 0
         dateRangePicker.addOnPositiveButtonClickListener { datePicked ->
@@ -148,12 +141,14 @@ class CalendarFragment : Fragment() {
         }
         binding.setDate.setOnClickListener {
             Log.d("MY_TAG", "sharedPreferences: ${sharedPreferences.getStringValue("city")}")
-                viewModel.createTrip(
-                    token,
-                    TripModel(
+            viewModel.createTrip(
+                token,
+                TripModel(
                     getDateTime(viewModel.startDate.value.toLong()),
                     getDateTime(viewModel.finishDate.value.toLong()),
-                        city = sharedPreferences.getStringValue("city") ?: ""))
+                    city = sharedPreferences.getStringValue("city") ?: ""
+                )
+            )
         }
 
         binding.calendarView.setOnDateChangeListener { calendarView, year, month, day ->
@@ -176,21 +171,32 @@ class CalendarFragment : Fragment() {
         viewModel.getTripListByUser(token)
 
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-            viewModel.tripListByUser.collect{ list ->
+            viewModel.tripListByUser.collect { list ->
                 list.forEach { trip ->
                     binding.btnAddPlace.setOnClickListener {
                         if (selectedDay !in trip.date_start..trip.date_finish) {
-                            Toast.makeText(requireContext(), "Создайте путешествие!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                requireContext(),
+                                "Создайте путешествие!",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         } else {
                             if (selectedDay != "") {
                                 val date = SimpleDateFormat("dd:MM:yyyy").parse(selectedDay)
 
                                 Log.d("My_TAG", "time: ${date.time} $selectedDay")
-                                Log.d("My_TAG", "start: ${SimpleDateFormat("dd:MM:yyyy").parse(trip.date_start).time} ${trip.date_start} ")
-                                Log.d("My_TAG", "finish: ${SimpleDateFormat("dd:MM:yyyy").parse(trip.date_finish).time} ${trip.date_finish}")
+                                Log.d(
+                                    "My_TAG",
+                                    "start: ${SimpleDateFormat("dd:MM:yyyy").parse(trip.date_start).time} ${trip.date_start} "
+                                )
+                                Log.d(
+                                    "My_TAG",
+                                    "finish: ${SimpleDateFormat("dd:MM:yyyy").parse(trip.date_finish).time} ${trip.date_finish}"
+                                )
 
                                 if (date.time >= SimpleDateFormat("dd:MM:yyyy").parse(trip.date_start).time
-                                    && date.time <= SimpleDateFormat("dd:MM:yyyy").parse(trip.date_finish).time) {
+                                    && date.time <= SimpleDateFormat("dd:MM:yyyy").parse(trip.date_finish).time
+                                ) {
                                     tripId = trip.id
                                     Log.d(
                                         "My_TAG",
@@ -211,12 +217,17 @@ class CalendarFragment : Fragment() {
                     }
                 }
 
-                val itemName = list.map { item -> "${item.city} ${item.date_start}-${item.date_finish}"  }
+                val itemName =
+                    list.map { item -> "${item.city} ${item.date_start}-${item.date_finish}" }
                 val items = list
 
                 withContext(Dispatchers.Main) {
                     val adapter =
-                        ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, itemName)
+                        ArrayAdapter(
+                            requireContext(),
+                            android.R.layout.simple_spinner_item,
+                            itemName
+                        )
                     adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
                     val spinner = binding.spinnerTrip
@@ -241,35 +252,14 @@ class CalendarFragment : Fragment() {
                                             sharedPreferences.save("city", trip.city)
                                             sharedPreferences.save("pos", "0")
                                         }
+
                                         "Великий Новгород" -> {
                                             sharedPreferences.save("city", trip.city)
                                             sharedPreferences.save("pos", "1")
                                         }
                                     }
-
-//                                    cityId = city.id
-//                                    sharedPreferences.save("pos", position.toString())
-//                                    sharedPreferences.save("city", city.name)
-//                                    sharedPreferences.saveFloat("city_lat", city.latitude.toFloat())
-//                                    sharedPreferences.saveFloat(
-//                                        "city_lon",
-//                                        city.longitude.toFloat()
-//                                    )
-//                                    binding.map.controller.setZoom(17.0)
-//                                    binding.map.controller.animateTo(
-//                                        GeoPoint(
-//                                            city.latitude,
-//                                            city.longitude
-//                                        )
-//                                    )
                                 }
                             }
-//                            try {
-//                                viewModel.getPlaceList(cityId, search, category)
-//
-//                            } catch (e: Exception) {
-//                                Log.e("MY_TAG", "onViewCreated: ${e.message}")
-//                            }
                         }
 
                         override fun onNothingSelected(parent: AdapterView<*>) {}
@@ -282,49 +272,18 @@ class CalendarFragment : Fragment() {
 
         binding.dayText.text = selectedDay
 
-//        viewModel.getDayListByUser(token, selectedDay)
         val rvAdapter = DayListByUserAdapter()
         binding.rvPlaceList.adapter = rvAdapter
 
         viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.dayListByUser.collect{ list ->
-//                val listPlace = mutableListOf<PlaceModel>()
-//                val placesId = mutableListOf<String>()
-//                list.map {
-//                    placesId.add(it.placeId)
-//                }
-//                Log.d("MY_TAG", "placesId: ${placesId}")
-//                placesId.map { placeId ->
-//                    viewModelPlace.getPlaceById(placeId)
-//                    viewModelPlace.place.collect {
-//                        listPlace.add(it)
-//                    }
-//                }
-//                withContext(Dispatchers.Main) {
-                    rvAdapter.submitList(list)
-//                }
-//
-//            }
-//            viewModel.dayListByUser.collect { list ->
-//                val listPlace = list.map { day ->
-//                    async { viewModelPlace.getPlaceById(day.placeId) }
-//                }.awaitAll()
-//                rvAdapter.submitList(listPlace)
-//            }
-//            viewModel.dayListByUser.collect { list ->
-//                // Создаем список с будущими результатами вызовов getPlaceById
-//                val deferredResults = list.map { day ->
-//                    async {
-//                        viewModelPlace.getPlaceById(day.placeId)
-//                        viewModelPlace.place.first() // Берем первое отправленное значение
-//                    }
-//                }
-//                // Получаем все результаты асинхронных вызовов
-//                val listPlace = deferredResults.awaitAll()
-//                // Обновляем адаптер на главном потоке
-//                withContext(Dispatchers.Main) {
-//                    rvAdapter.submitList(listPlace)
-//                }
+            viewModel.dayListByUser.collect { list ->
+                val newList = list.map {
+                    Log.d("TAG", "placeId: ${it.placeId}")
+                    viewModelPlace.getPlaceFromDbApi(it.placeId)
+                }
+                withContext(Dispatchers.Main) {
+                    rvAdapter.submitList(newList)
+                }
             }
         }
 
