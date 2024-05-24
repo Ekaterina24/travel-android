@@ -5,35 +5,30 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="10dp"
+    style="@style/BackgroundStyle"
     tools:context=".presentation.profile.ProfileFragment">
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnExit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Выйти"
+        android:backgroundTint="@color/red"
+        android:textSize="14sp"
+        app:cornerRadius="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <LinearLayout
         android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:layout_marginTop="10dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnExit"
         app:layout_constraintBottom_toTopOf="@+id/containerBtns">
-
-        <!-- Имя пользователя -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/containerUserName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Имя" />
-
-        </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Email пользователя -->
         <com.google.android.material.textfield.TextInputLayout
@@ -73,6 +68,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Редактировать"
+            android:backgroundTint="@color/blue"
             android:textSize="14sp"
             app:cornerRadius="4dp"
             app:layout_constraintStart_toStartOf="parent"
@@ -84,6 +80,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Сохранить"
+            android:backgroundTint="@color/green"
             android:textSize="14sp"
             app:cornerRadius="4dp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -91,5 +88,12 @@
             android:layout_marginStart="8dp"/>
 
     </LinearLayout>
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/switchTheme"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/containerBtns" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

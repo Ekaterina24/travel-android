@@ -1,9 +1,13 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.Travel" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+<!--    <style name="AppTheme.Light" parent="Theme.Material3.DayNight.NoActionBar">-->
+<!--        &lt;!&ndash; Customize your light theme here. &ndash;&gt;-->
+<!--         <item name="backgroundColor">@color/white</item>-->
+<!--    </style>-->
+
+    <style name="BackgroundStyle">
+        <item name="android:background">@color/white</item>
     </style>
 
-    <style name="Theme.Travel" parent="Base.Theme.Travel" />
+<!--    <style name="Theme.Travel" parent="AppTheme.Light" />-->
 </resources>

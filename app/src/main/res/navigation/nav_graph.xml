@@ -78,5 +78,14 @@
     <fragment
         android:id="@+id/controlProfileFragment"
         android:name="com.example.travel.presentation.profile.ControlProfileFragment"
-        android:label="ControlProfileFragment" />
+        android:label="ControlProfileFragment" >
+        <action
+            android:id="@+id/action_controlProfileFragment_to_mapFragment"
+            app:destination="@id/mapFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/favoriteFragment"
+        android:name="com.example.travel.presentation.favorite.FavoriteFragment"
+        android:label="fragment_favorite"
+        tools:layout="@layout/fragment_favorite" />
 </navigation>

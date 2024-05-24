@@ -69,18 +69,6 @@ class AuthFragment : Fragment() {
         binding.btnLogin.setOnClickListener {
 
             viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-//                viewModel.userToken.collect {
-//                    async {
-//                        sharedPreferences.save("token", it.accessToken)
-//                        sharedPreferences.save("token_expire_in", it.expiresIn.toString())
-//                        (activity as MainActivity).saveAuthTime()
-//                    }.await()
-//                    withContext(Dispatchers.Main) {
-//                        (activity as MainActivity).binding.bottomNav.visibility = View.VISIBLE
-//                        binding.progressBar.visibility = View.GONE
-//                        findNavController().navigate(R.id.action_controlFragment_to_mapFragment)
-//                    }
-//                }
                 with(binding) {
                     email = tvEmail.text.toString()
                     password = tvPassword.text.toString()
@@ -91,8 +79,8 @@ class AuthFragment : Fragment() {
                     viewModel.loginResult.collectLatest {
                         when (it) {
                             is ApiResponse.Success -> {
-                                binding.progressBar.visibility = View.VISIBLE
-                                async {
+                                async(Dispatchers.Main) {
+                                    binding.progressBar.visibility = View.VISIBLE
                                     sharedPreferences.save("token", it.value.accessToken)
                                     (activity as MainActivity).saveAuthTime()
                                 }.await()

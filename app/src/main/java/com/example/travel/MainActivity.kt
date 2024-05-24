@@ -85,6 +85,14 @@ class MainActivity : AppCompatActivity() {
                     }
                     true
                 }
+                R.id.favoriteFragment -> {
+                    if (!checkAuthTime()) {
+                        findNavController(R.id.fragment_container).navigate(R.id.requireRegisterFragment)
+                    } else {
+                        findNavController(R.id.fragment_container).navigate(R.id.favoriteFragment)
+                    }
+                    true
+                }
                 R.id.mapFragment -> {
                     findNavController(R.id.fragment_container).navigate(R.id.mapFragment)
                     true

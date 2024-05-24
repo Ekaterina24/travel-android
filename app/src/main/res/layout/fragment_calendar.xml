@@ -35,11 +35,19 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="10.10-12.10"
+                android:text="..."
+                android:layout_marginHorizontal="10dp"
                 android:textSize="16sp" />
+
+            <ImageButton
+                android:id="@+id/btnChoose"
+                android:src="@drawable/ic_create_calendar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
 
             <Button
                 android:id="@+id/setDate"
+                android:visibility="gone"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="30dp"

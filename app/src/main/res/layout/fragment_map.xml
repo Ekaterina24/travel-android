@@ -41,6 +41,7 @@
             android:layout_marginStart="8dp"
             android:id="@+id/searchView"
             android:paddingHorizontal="8dp"
+            android:hint="Поиск..."
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@drawable/background_for_btn" />

@@ -114,11 +114,11 @@ class PlacesViewModel(
 
     val locationUpdates = MutableLiveData<LocationModel>()
 
-//    fun getPlaceList(cityId: Int, search: String, category: String) {
-//        viewModelScope.launch(Dispatchers.IO) {
-//            _placeList.emit(getPlaceListCase(cityId, search, category))
-//        }
-//    }
+    fun getPlaceListFromApi(cityId: Int, search: String, category: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _placeList.emit(getPlaceListCase(cityId, search, category))
+        }
+    }
 
     fun createReview(token: String, review: CreateReviewModel) {
         viewModelScope.launch {

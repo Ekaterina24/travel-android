@@ -90,20 +90,18 @@ class ProfileRatingFragment : Fragment() {
         }
 
         viewModelProfile.getUserList()
-
         viewModelProfile.uploadUserProfile(token)
 
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             viewModelProfile.userProfile.collect { user ->
-
+                viewModelProfile.getUserList()
 
                 val rvRatingAdapter = RatingListAdapter(object : UserIdentification {
                     override fun isCurrentUser(userId: Long): Boolean {
                         return user.id == userId
                     }
-                }
-                )
-                
+                })
+
                 withContext(Dispatchers.Main) {
                     binding.rvRating.adapter = rvRatingAdapter
                     viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
@@ -116,11 +114,9 @@ class ProfileRatingFragment : Fragment() {
                     }
                 }
 
-
             }
+
         }
-
-
 
 
     }

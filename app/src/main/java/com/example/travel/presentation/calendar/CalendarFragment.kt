@@ -21,6 +21,7 @@ import com.example.travel.domain.model.TripModel
 import com.example.travel.presentation.places.PlacesViewModel
 import com.example.travel.presentation.places.PlacesViewModelFactory
 import com.google.android.material.datepicker.MaterialDatePicker
+import com.musfickjamil.snackify.Snackify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -49,8 +50,6 @@ class CalendarFragment : Fragment() {
 
     private var selectedDay = ""
     private var tripId = 0
-//    private var arrayData = mutableListOf<String>()
-//    private val args by navArgs<CalendarFragmentArgs>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -68,48 +67,12 @@ class CalendarFragment : Fragment() {
         val dateRangePicker =
             MaterialDatePicker.Builder.dateRangePicker()
                 .setTitleText("Select dates")
-//                    .setSelection(
-//                        Pair(
-//                            MaterialDatePicker.thisMonthInUtcMilliseconds(),
-//                            MaterialDatePicker.todayInUtcMilliseconds()
-//                        )
-//                    )
                 .build()
 
         viewModel.uploadSub()
 
-//        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-//            viewModel.subList.collect { list ->
-//                list.forEach { sub ->
-//                    if ( Date(System.currentTimeMillis()).time - sub.date.time >= 1000 ) {
-//                        Log.d("MY_TAG", "time: ${Date(System.currentTimeMillis()).time - sub.date.time}")
-//                        viewModel.updateAudio(status = "OPEN", 1)
-//                    }
-//                }
-//            }
-//        }
-
-
-        binding.rangeDate.setOnClickListener {
-
+        binding.btnChoose.setOnClickListener {
             dateRangePicker.show(parentFragmentManager, "Выберите даты")
-//            viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Default) {
-//                val fr = dateRangePicker.selection?.first
-//                viewModel.startDate.emit((dateRangePicker.selection?.first).toString())
-//                viewModel.finishDate.emit((dateRangePicker.selection?.second).toString())
-////                Log.d("MY_TAG", "onViewCreated: ${dateRangePicker.selection?.first}")
-////                viewModel.startDate.collect{
-////                    binding.rangeDate.text = it
-////                }
-////                withContext(Dispatchers.Main) {
-////                    binding.rangeDate.text =
-////                        "${viewModel.startDate.value}-${viewModel.finishDate.value}"
-////                }
-//            }
-
-        }
-        fun getTime(first: String, second: String): ArrayList<String> {
-            return arrayListOf(first, second)
         }
 
         fun getDateTime(time: Long): String {
@@ -122,8 +85,6 @@ class CalendarFragment : Fragment() {
             }
         }
 
-        val first = 0
-        val second = 0
         dateRangePicker.addOnPositiveButtonClickListener { datePicked ->
             val startDate = (datePicked.first / 1000).toString()
             val endDate = (datePicked.second / 1000).toString()
@@ -135,12 +96,12 @@ class CalendarFragment : Fragment() {
                 withContext(Dispatchers.Main) {
                     binding.rangeDate.text =
                         "${getDateTime(viewModel.startDate.value.toLong())}-${getDateTime(viewModel.finishDate.value.toLong())}"
+                    binding.setDate.visibility = View.VISIBLE
                 }
             }
 
         }
         binding.setDate.setOnClickListener {
-            Log.d("MY_TAG", "sharedPreferences: ${sharedPreferences.getStringValue("city")}")
             viewModel.createTrip(
                 token,
                 TripModel(
@@ -149,12 +110,20 @@ class CalendarFragment : Fragment() {
                     city = sharedPreferences.getStringValue("city") ?: ""
                 )
             )
+            binding.rangeDate.text = "..."
+            binding.setDate.visibility = View.GONE
+
+            Snackify.success(
+                binding.containerSelectDate,
+                "Путешествие успешно создано!",
+                Snackify.LENGTH_LONG
+            ).show()
         }
 
         binding.calendarView.setOnDateChangeListener { calendarView, year, month, day ->
             var d = ""
             var m = ""
-            Log.d("MY_TAG", "onViewCreated: $year $month $day")
+
             d = if (day < 10) {
                 "0${day}"
             } else day.toString()
@@ -164,7 +133,7 @@ class CalendarFragment : Fragment() {
             } else (month + 1).toString()
 
             selectedDay = "${d}:${m}:${year}"
-            Log.d("MY_TAG", "onViewCreated: $selectedDay")
+            binding.dayText.text = selectedDay
             viewModel.getDayListByUser(token, selectedDay)
         }
 
@@ -175,33 +144,19 @@ class CalendarFragment : Fragment() {
                 list.forEach { trip ->
                     binding.btnAddPlace.setOnClickListener {
                         if (selectedDay !in trip.date_start..trip.date_finish) {
-                            Toast.makeText(
-                                requireContext(),
-                                "Создайте путешествие!",
-                                Toast.LENGTH_SHORT
+                            Snackify.error(
+                                binding.rvPlaceList,
+                                "Выберите день или создайте путешествие!",
+                                Snackify.LENGTH_LONG
                             ).show()
                         } else {
                             if (selectedDay != "") {
                                 val date = SimpleDateFormat("dd:MM:yyyy").parse(selectedDay)
 
-                                Log.d("My_TAG", "time: ${date.time} $selectedDay")
-                                Log.d(
-                                    "My_TAG",
-                                    "start: ${SimpleDateFormat("dd:MM:yyyy").parse(trip.date_start).time} ${trip.date_start} "
-                                )
-                                Log.d(
-                                    "My_TAG",
-                                    "finish: ${SimpleDateFormat("dd:MM:yyyy").parse(trip.date_finish).time} ${trip.date_finish}"
-                                )
-
                                 if (date.time >= SimpleDateFormat("dd:MM:yyyy").parse(trip.date_start).time
                                     && date.time <= SimpleDateFormat("dd:MM:yyyy").parse(trip.date_finish).time
                                 ) {
                                     tripId = trip.id
-                                    Log.d(
-                                        "My_TAG",
-                                        "tripId: ${tripId}",
-                                    )
                                 }
 
                                 val arrayData = arrayListOf(selectedDay, tripId.toString())
@@ -233,8 +188,13 @@ class CalendarFragment : Fragment() {
                     val spinner = binding.spinnerTrip
                     spinner.adapter = adapter
 
-                    sharedPreferences.getStringValue("pos")
-                        ?.let { it1 -> spinner.setSelection(it1.toInt()) }
+                    if (items.isNotEmpty()) {
+//                        sharedPreferences.getStringValue("pos")
+//                            ?.let { it1 ->
+                                spinner.setSelection(items.size - 1)
+//                            }
+                    }
+
 
                     spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                         override fun onItemSelected(
@@ -243,23 +203,22 @@ class CalendarFragment : Fragment() {
                             position: Int,
                             id: Long
                         ) {
-                            val itemSelected = parent.getItemAtPosition(position).toString()
-                            items.map { trip ->
-                                Log.d("MY_TAG", "onItemSelected: $itemSelected")
-                                if ("${trip.city} ${trip.date_start}-${trip.date_finish}" == itemSelected) {
-                                    when (trip.city) {
-                                        "Волгоград" -> {
-                                            sharedPreferences.save("city", trip.city)
-                                            sharedPreferences.save("pos", "0")
-                                        }
-
-                                        "Великий Новгород" -> {
-                                            sharedPreferences.save("city", trip.city)
-                                            sharedPreferences.save("pos", "1")
-                                        }
-                                    }
-                                }
-                            }
+//                            val itemSelected = parent.getItemAtPosition(position).toString()
+//                            items.map { trip ->
+//                                if ("${trip.city} ${trip.date_start}-${trip.date_finish}" == itemSelected) {
+//                                    when (trip.city) {
+//                                        "Москва" -> {
+//                                            sharedPreferences.save("city", trip.city)
+//                                            sharedPreferences.save("pos", "0")
+//                                        }
+//
+//                                        "Великий Новгород" -> {
+//                                            sharedPreferences.save("city", trip.city)
+//                                            sharedPreferences.save("pos", "1")
+//                                        }
+//                                    }
+//                                }
+//                            }
                         }
 
                         override fun onNothingSelected(parent: AdapterView<*>) {}
@@ -278,7 +237,6 @@ class CalendarFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.dayListByUser.collect { list ->
                 val newList = list.map {
-                    Log.d("TAG", "placeId: ${it.placeId}")
                     viewModelPlace.getPlaceFromDbApi(it.placeId)
                 }
                 withContext(Dispatchers.Main) {

@@ -283,12 +283,12 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
 
                     val spinner = binding.spinnerCity
                     spinner.adapter = adapter
-                    if (sharedPreferences.getStringValue("pos").toString().isEmpty()) {
+//                    if (sharedPreferences.getStringValue("pos").toString().isEmpty()) {
                         spinner.setSelection(pos)
-                    } else {
-                        sharedPreferences.getStringValue("pos")
-                            ?.let { it1 -> spinner.setSelection(it1.toInt()) }
-                    }
+//                    } else {
+//                        sharedPreferences.getStringValue("pos")
+//                            ?.let { it1 -> spinner.setSelection((it1 + 1).toInt()) }
+//                    }
 
                     spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                         override fun onItemSelected(
@@ -321,7 +321,6 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
                             try {
 //                                viewModel.getPlaceList(cityId, search, category)
                                 viewModel.getPlaceListData(cityId, search, category)
-
                             } catch (e: Exception) {
                                 Log.e("MY_TAG", "onViewCreated: ${e.message}")
                             }
@@ -343,7 +342,9 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
                 .collectLatest { textSearch ->
                     search = textSearch.lowercase()
 //                    viewModel.getPlaceList(cityId, search, category)
-                    viewModel.getPlaceListData(cityId, search, category)
+                    viewModel.getPlaceListFromApi(cityId, search, category)
+
+//                    viewModel.getPlaceListData(cityId, search, category)
                 }
         }
 
@@ -357,8 +358,8 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
 
             override fun getCategory(name: String) {
                 category = name
-//                viewModel.getPlaceList(cityId, search, category)
-                viewModel.getPlaceListData(cityId, search, category)
+//                viewModel.getPlaceListData(cityId, search, category)
+                viewModel.getPlaceListFromApi(cityId, search, category)
             }
 
         })
@@ -381,26 +382,8 @@ class MapFragment : Fragment(), TextToSpeech.OnInitListener {
             object : PlaceActionListener {
                 override fun getPlaceId(genId: Long) {
                     viewModel.uploadPlaceFromDb(genId, cityId, search, category) //get
-//                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-//                        viewModel.place.collect { place ->
-//                            placeIsFav = place.is_favourite
-//                            viewModel.updatePlaceFavorite(!placeIsFav, genId)
-//                            viewModel.getPlaceListData(cityId, search, category)
-//                        }
-//                    }
-
-//                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-//                        viewModel.audioListByPlace.collect { audioList ->
-//                            withContext(Dispatchers.Main) {
-////                                binding.audio.text = audioList.toString()
-//                                text = audioList[0].desc
-//                            }
-//                        }
-//                    }
                 }
-
             }
-
         )
 
         binding.rvPlaceList.adapter = rvAdapter
