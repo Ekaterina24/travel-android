@@ -29,7 +29,6 @@ class App : Application() {
 
     }
 
-    // static Java
     companion object {
         // для получения инстанс апп извне (установка только внутри в методе onCreate)
         lateinit var INSTANCE: App

@@ -10,6 +10,7 @@ import com.example.travel.domain.model.CityModel
 import com.example.travel.domain.model.LoginModel
 import com.example.travel.domain.model.RegisterModel
 import com.example.travel.domain.model.TokenModel
+import com.example.travel.domain.model.UpdateEmailRequest
 import com.example.travel.domain.model.UpdateScoresRequest
 import com.example.travel.domain.model.UserModel
 import com.example.travel.domain.model.UserProfileModel
@@ -70,6 +71,10 @@ class UserRepositoryImpl(
 
     override suspend fun updateScoresFromApi(token: String, scores: UpdateScoresRequest) {
         RetrofitInstance.travelApi.updateScoresFromApi(token, scores)
+    }
+
+    override suspend fun updateEmailFromApi(token: String, email: UpdateEmailRequest) {
+        RetrofitInstance.travelApi.updateEmailFromApi(token, email)
     }
 
     override suspend fun insertUser(user: UserProfileModel) {

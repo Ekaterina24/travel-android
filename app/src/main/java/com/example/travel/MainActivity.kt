@@ -1,25 +1,13 @@
 package com.example.travel
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
-import android.view.View
-import androidx.activity.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.flowWithLifecycle
-import androidx.lifecycle.lifecycleScope
+import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.example.travel.data.local.prefs.SharedPreferences
 import com.example.travel.databinding.ActivityMainBinding
-import com.example.travel.presentation.PermissionUtils
-import com.example.travel.presentation.places.PlacesViewModel
-import com.example.travel.presentation.places.PlacesViewModelFactory
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

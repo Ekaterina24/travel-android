@@ -12,6 +12,7 @@ import com.example.travel.domain.model.CreateSubscribeModel
 import com.example.travel.domain.model.PlaceModel
 import com.example.travel.domain.model.GetSubscribeModel
 import com.example.travel.domain.model.TypeSubModel
+import com.example.travel.domain.model.UpdateEmailRequest
 import com.example.travel.domain.model.UpdateScoresRequest
 import com.example.travel.domain.model.UserProfileModel
 import com.example.travel.domain.usecase.place.GetPlacesUseCase
@@ -22,12 +23,14 @@ import com.example.travel.domain.usecase.type_sub.GetTypeSubListUseCase
 import com.example.travel.domain.usecase.user.CashUserUseCase
 import com.example.travel.domain.usecase.user.GetUserListUseCase
 import com.example.travel.domain.usecase.user.GetUserProfileUseCase
+import com.example.travel.domain.usecase.user.UpdateEmailFromApiUseCase
 import com.example.travel.domain.usecase.user.UpdateScoresFromApiUseCase
 import com.example.travel.domain.usecase.user.UploadUserUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 
@@ -44,6 +47,7 @@ class ProfileViewModelFactory : ViewModelProvider.Factory {
             val uploadUserUseCase = UploadUserUseCase(userRepo)
             val getUserListUseCase = GetUserListUseCase(userRepo)
             val updateScoresFromApiUseCase = UpdateScoresFromApiUseCase(userRepo)
+            val updateEmailFromApiUseCase = UpdateEmailFromApiUseCase(userRepo)
 
             val uploadPlaceListUseCase = UploadPlaceListUseCase(placeRepo)
             val useCase1 = GetPlacesUseCase(placeRepo)
@@ -64,7 +68,8 @@ class ProfileViewModelFactory : ViewModelProvider.Factory {
                 createSubscribeUseCase,
                 getSubscribeListByUserUseCase,
                 getUserListUseCase,
-                updateScoresFromApiUseCase
+                updateScoresFromApiUseCase,
+                updateEmailFromApiUseCase,
             ) as T
         }
         throw IllegalArgumentException("Unknown class name")
@@ -81,6 +86,7 @@ class ProfileViewModel(
     private val getSubscribeListByUserUseCase: GetSubscribeListByUserUseCase,
     private val getUserListUseCase: GetUserListUseCase,
     private val updateScoresFromApiUseCase: UpdateScoresFromApiUseCase,
+    private val updateEmailFromApiUseCase: UpdateEmailFromApiUseCase,
 ) : ViewModel() {
 
     private var _userProfile = MutableSharedFlow<UserProfileModel>()
@@ -95,8 +101,8 @@ class ProfileViewModel(
     private var _typeSubList = MutableSharedFlow<List<TypeSubModel>>()
     var typeSubList = _typeSubList.asSharedFlow()
 
-    private var _subscribeListByUser = MutableSharedFlow<List<GetSubscribeModel>>()
-    var subscribeListByUser = _subscribeListByUser.asSharedFlow()
+    private var _subscribeListByUser = MutableStateFlow<List<GetSubscribeModel>>(emptyList())
+    var subscribeListByUser = _subscribeListByUser.asStateFlow()
 
     fun cashUserProfile(token: String) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -157,6 +163,12 @@ class ProfileViewModel(
         viewModelScope.launch {
             updateScoresFromApiUseCase(token, scores)
 //            getUserList()
+        }
+    }
+
+    fun updateEmailFromApi(token: String, email: UpdateEmailRequest) {
+        viewModelScope.launch {
+            updateEmailFromApiUseCase(token, email)
         }
     }
 

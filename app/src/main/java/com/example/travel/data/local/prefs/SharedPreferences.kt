@@ -16,7 +16,7 @@ class SharedPreferences(context: Context?) {
     private val keyTheme = "theme"
 
     var theme
-        get() = preference?.getInt(keyTheme, 2)
+        get() = preference?.getInt(keyTheme, 0)
         set(value) {
             if (value != null) {
                 editor?.putInt(keyTheme, value)
@@ -27,7 +27,7 @@ class SharedPreferences(context: Context?) {
     val themeFlags = arrayOf(
         AppCompatDelegate.MODE_NIGHT_NO,
         AppCompatDelegate.MODE_NIGHT_YES,
-        AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
+//        AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM
     )
 
     companion object {

@@ -10,6 +10,9 @@ import com.example.travel.databinding.PlaceItemBinding
 import com.example.travel.databinding.ReviewItemBinding
 import com.example.travel.domain.model.review.GetReviewModel
 import com.example.travel.domain.model.review.ReviewAdapterModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class ReviewAdapter : ListAdapter<ReviewAdapterModel, ReviewAdapter.ReviewViewHolder>(callback) {
     class ReviewViewHolder(val binding: ReviewItemBinding) : RecyclerView.ViewHolder(binding.root)
@@ -19,9 +22,11 @@ class ReviewAdapter : ListAdapter<ReviewAdapterModel, ReviewAdapter.ReviewViewHo
     }
     override fun onBindViewHolder(holder: ReviewViewHolder, position: Int) {
         val reviewItem = getItem(position)
+        val format = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
         holder.binding.tvName.text = reviewItem.userName
-        holder.binding.tvDate.text = reviewItem.date.toString()
-        holder.binding.tvRating.text = reviewItem.rating.toString()
+        holder.binding.tvDate.text = reviewItem.placeId
+//            format.format(reviewItem.date).toString()
+        holder.binding.tvRating.text = "Рейтинг: ${reviewItem.rating}"
         holder.binding.tvReview.text = reviewItem.text
     }
 

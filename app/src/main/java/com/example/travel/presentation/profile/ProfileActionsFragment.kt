@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.travel.data.local.prefs.SharedPreferences
@@ -17,6 +18,7 @@ import com.example.travel.domain.model.UserSubscribeAdapterModel
 import com.example.travel.domain.model.review.ReviewAdapterModel
 import com.example.travel.presentation.places.PlaceActionListener
 import com.example.travel.presentation.places.PlaceListAdapter
+import com.musfickjamil.snackify.Snackify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -55,70 +57,39 @@ class ProfileActionsFragment : Fragment() {
         val token = "Bearer ${sharedPreferences.getStringValue("token")}"
         val city = sharedPreferences.getStringValue("city")
 
-//        viewModelProfile.uploadPlaceList()
-//
-//        val rvAdapter = PlaceListAdapter(
-//            object : PlaceActionListener {
-//
-//                override fun getPlaceId(genId: Long) {
-////                    placeId = id
-////                    viewModel.uploadPlaceFromDb(genId)
-////
-//////                    binding.container.visibility = View.VISIBLE
-//////                    Log.d("MyLog", "placeId: $placeId")
-//////
-//////                    viewModel.getAudioListByPlace(placeId)
-//////                    viewModel.getPlaceById(placeId)
-////
-////                    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-////                        viewModel.place.collect { place ->
-////
-////                            placeIsFav = !place.is_favourite
-////                            Log.d("TAG", "getPlaceId: $genId, placeIsNotFav $placeIsFav")
-////                            viewModel.updatePlaceFavorite(placeIsFav, genId)
-//////                            withContext(Dispatchers.Main) {
-//////                                binding.im
-//////                            }
-////                        }
-////                    }
-//
-//                }
-//
-//            }
-//
-//        )
-//
-//
-//        binding.rvPlaceList.adapter = rvAdapter
-//
-//        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-//            viewModelProfile.placeList.collect {
-//                withContext(Dispatchers.Main) {
-//                    val newList = mutableListOf<PlaceModel>()
-//                    it.map { item ->
-//                        if (item.is_visited) {
-//                            newList.add(item)
-//                        }
-//                    }
-//                    Log.d("MY_TAG", "newList: ${newList}")
-//                    rvAdapter.submitList(newList)
-//                }
-//
-//            }
-//        }
-
-
         viewModelProfile.getTypeSubList()
         val rvTypeSubAdapter = TypeSubListAdapter(
             object : TypeSubActionListener {
                 override fun onChooseTypeSub(typeSub: TypeSubModel) {
-                    viewModelProfile.createSubscribe(
-                        token = token,
-                        subscribe = CreateSubscribeModel(
-                            typeId = typeSub.id,
-                            city = city.toString()
-                        )
-                    )
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        val isSubscribed = viewModelProfile.subscribeListByUser.value.any { sub ->
+                            sub.city == city
+                        }
+
+                        withContext(Dispatchers.Main) {
+                            if (isSubscribed) {
+                                Snackify.info(
+                                    binding.rvTypeSubList,
+                                    "У вас есть активная подписка на город $city!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                viewModelProfile.createSubscribe(
+                                    token = token,
+                                    subscribe = CreateSubscribeModel(
+                                        typeId = typeSub.id,
+                                        city = city.toString()
+                                    )
+                                )
+                                Snackify.success(
+                                    binding.rvTypeSubList,
+                                    "Подписка на город $city активирована!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    }
+
                 }
 
             }
@@ -127,7 +98,6 @@ class ProfileActionsFragment : Fragment() {
         binding.rvTypeSubList.adapter = rvTypeSubAdapter
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             viewModelProfile.typeSubList.collect {
-                Log.d("MY_TAG", "typeSubList: ${it} ${it.size}")
                 withContext(Dispatchers.Main) {
                     rvTypeSubAdapter.submitList(it)
                 }
@@ -140,7 +110,6 @@ class ProfileActionsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             viewModelProfile.typeSubList.collect { typeSubList ->
                 viewModelProfile.subscribeListByUser.collect { subscribeListByUser ->
-
                     val newList = mutableListOf<UserSubscribeAdapterModel>()
 
                     subscribeListByUser.forEach { sub ->
@@ -155,23 +124,6 @@ class ProfileActionsFragment : Fragment() {
                             )
                         }
                     }
-
-
-//                        subscribeListByUser.map { sub ->
-//                            typeSubList.map { type ->
-//                                if (type.id == sub.typeId) {
-//                                    newList.add(
-//                                        UserSubscribeAdapterModel(
-//                                            date_start = sub.date,
-//                                            period = type.period,
-//                                            city = sub.city,
-//                                            id = sub.id
-//                                        )
-//                                    )
-//                                }
-//
-//                            }
-//                        }
                     withContext(Dispatchers.Main) {
                         rvSubscribeAdapter.submitList(newList)
                     }

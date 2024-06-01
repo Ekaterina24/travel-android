@@ -16,4 +16,8 @@ class DayPlacesRepositoryImpl: DayPlacesRepository {
         return mapper.mapListDtoToList(RetrofitInstance.travelApi.getPlaceListByUser(token, date))
     }
 
+    override suspend fun deletePlaceByRecordId(token: String, placeId: String) {
+        RetrofitInstance.travelApi.deletePlaceByStringId(token, placeId)
+    }
+
 }

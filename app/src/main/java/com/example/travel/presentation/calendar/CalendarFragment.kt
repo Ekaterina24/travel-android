@@ -17,6 +17,7 @@ import com.example.travel.R
 import com.example.travel.data.local.prefs.SharedPreferences
 import com.example.travel.databinding.FragmentCalendarBinding
 import com.example.travel.domain.model.AudioModel
+import com.example.travel.domain.model.PlaceModel
 import com.example.travel.domain.model.TripModel
 import com.example.travel.presentation.places.PlacesViewModel
 import com.example.travel.presentation.places.PlacesViewModelFactory
@@ -66,10 +67,10 @@ class CalendarFragment : Fragment() {
         val token = "Bearer ${sharedPreferences.getStringValue("token")}"
         val dateRangePicker =
             MaterialDatePicker.Builder.dateRangePicker()
-                .setTitleText("Select dates")
+                .setTitleText("Укажите интервал")
                 .build()
 
-        viewModel.uploadSub()
+//        viewModel.uploadSub()
 
         binding.btnChoose.setOnClickListener {
             dateRangePicker.show(parentFragmentManager, "Выберите даты")
@@ -189,12 +190,8 @@ class CalendarFragment : Fragment() {
                     spinner.adapter = adapter
 
                     if (items.isNotEmpty()) {
-//                        sharedPreferences.getStringValue("pos")
-//                            ?.let { it1 ->
-                                spinner.setSelection(items.size - 1)
-//                            }
+                        spinner.setSelection(items.size - 1)
                     }
-
 
                     spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                         override fun onItemSelected(
@@ -202,24 +199,7 @@ class CalendarFragment : Fragment() {
                             view: View,
                             position: Int,
                             id: Long
-                        ) {
-//                            val itemSelected = parent.getItemAtPosition(position).toString()
-//                            items.map { trip ->
-//                                if ("${trip.city} ${trip.date_start}-${trip.date_finish}" == itemSelected) {
-//                                    when (trip.city) {
-//                                        "Москва" -> {
-//                                            sharedPreferences.save("city", trip.city)
-//                                            sharedPreferences.save("pos", "0")
-//                                        }
-//
-//                                        "Великий Новгород" -> {
-//                                            sharedPreferences.save("city", trip.city)
-//                                            sharedPreferences.save("pos", "1")
-//                                        }
-//                                    }
-//                                }
-//                            }
-                        }
+                        ) {}
 
                         override fun onNothingSelected(parent: AdapterView<*>) {}
                     }
@@ -231,7 +211,17 @@ class CalendarFragment : Fragment() {
 
         binding.dayText.text = selectedDay
 
-        val rvAdapter = DayListByUserAdapter()
+        val rvAdapter = DayListByUserAdapter(
+            object : PlaceActionListener {
+                override fun onChoosePlace(place: PlaceModel) {
+                    //TODO("Not yet implemented")
+                }
+
+                override fun deletePlaceByStringId(placeId: String) {
+                    viewModel.deletePlaceByStringId(token, placeId, date = selectedDay)
+                }
+            }
+        )
         binding.rvPlaceList.adapter = rvAdapter
 
         viewLifecycleOwner.lifecycleScope.launch {

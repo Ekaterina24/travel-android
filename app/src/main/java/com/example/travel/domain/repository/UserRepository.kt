@@ -4,6 +4,7 @@ import com.example.travel.domain.ApiResponse
 import com.example.travel.domain.model.LoginModel
 import com.example.travel.domain.model.RegisterModel
 import com.example.travel.domain.model.TokenModel
+import com.example.travel.domain.model.UpdateEmailRequest
 import com.example.travel.domain.model.UpdateScoresRequest
 import com.example.travel.domain.model.UserModel
 import com.example.travel.domain.model.UserProfileModel
@@ -16,6 +17,7 @@ interface UserRepository {
     suspend fun getUserProfile(token: String): UserProfileModel
     suspend fun getUserList(): List<UserProfileModel>
     suspend fun updateScoresFromApi(token: String, scores: UpdateScoresRequest)
+    suspend fun updateEmailFromApi(token: String, email: UpdateEmailRequest)
 
     // Local
     suspend fun insertUser(user: UserProfileModel)

@@ -38,13 +38,13 @@
             android:padding="10dp" />
 
         <EditText
-            android:layout_marginStart="8dp"
             android:id="@+id/searchView"
-            android:paddingHorizontal="8dp"
-            android:hint="Поиск..."
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@drawable/background_for_btn" />
+            android:layout_marginStart="8dp"
+            android:background="@drawable/background_for_btn"
+            android:hint="Поиск..."
+            android:paddingHorizontal="8dp" />
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -62,18 +62,18 @@
         android:layout_height="300dp"
         android:orientation="vertical"
         android:visibility="gone"
-        tools:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintStart_toStartOf="parent"
+        tools:visibility="visible">
 
         <ScrollView
             android:id="@+id/detailContainer"
             android:layout_width="match_parent"
             android:layout_height="300dp"
-            android:background="@color/gray"
-            tools:visibility="visible"
-            android:visibility="gone">
+            android:background="@color/white"
+            android:visibility="gone"
+            tools:visibility="visible">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -89,55 +89,82 @@
                 <com.google.android.flexbox.FlexboxLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:alignItems="center"
                     app:justifyContent="space_between">
 
-                    <TextView
-                        android:id="@+id/name"
-                        android:layout_width="200dp"
-                        android:layout_height="wrap_content"
-                        android:text="Название"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:id="@+id/name"
+                            android:layout_marginTop="10dp"
+                            android:layout_width="200dp"
+                            android:layout_height="wrap_content"
+                            android:text="Название"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/textAudio"
+                            android:layout_marginTop="10dp"
+                            android:layout_width="200dp"
+                            android:visibility="gone"
+                            android:layout_height="wrap_content"
+                            android:text="Доступен аудиогид"
+                            android:textColor="@color/red"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
 
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:orientation="vertical">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <ImageButton
+                                android:id="@+id/btnAddPlace"
+                                android:layout_width="36dp"
+                                android:layout_height="36dp"
+                                android:layout_marginStart="10dp"
+                                android:background="@color/green"
+                                android:contentDescription="add"
+                                android:src="@drawable/ic_add" />
+
+                            <ImageButton
+                                android:id="@+id/btnClose"
+                                android:layout_width="36dp"
+                                android:layout_height="36dp"
+                                android:layout_marginStart="10dp"
+                                android:background="?attr/selectableItemBackground"
+                                android:contentDescription="close"
+                                android:src="@drawable/ic_close" />
+                        </LinearLayout>
 
                         <Button
                             android:id="@+id/btnGo"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="В путь"
                             android:layout_marginStart="10dp"
+                            android:layout_marginTop="10dp"
                             android:backgroundTint="@color/green"
                             android:contentDescription="add"
-                            android:src="@drawable/ic_add" />
+                            android:src="@drawable/ic_add"
+                            android:text="В путь" />
 
-                        <ImageButton
-                            android:id="@+id/btnAddPlace"
-                            android:layout_width="36dp"
-                            android:layout_height="36dp"
-                            android:layout_marginStart="10dp"
-                            android:background="@color/green"
-                            android:contentDescription="add"
-                            android:src="@drawable/ic_add" />
-
-                        <ImageButton
-                            android:id="@+id/btnClose"
-                            android:layout_width="36dp"
-                            android:layout_height="36dp"
-                            android:layout_marginStart="10dp"
-                            android:background="?attr/selectableItemBackground"
-                            android:contentDescription="close"
-                            android:src="@drawable/ic_close" />
                     </LinearLayout>
 
                 </com.google.android.flexbox.FlexboxLayout>
 
                 <TextView
                     android:id="@+id/tvType"
+                    android:visibility="gone"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="7dp"
@@ -145,6 +172,7 @@
 
                 <TextView
                     android:id="@+id/tvAddress"
+                    android:visibility="gone"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="7dp"
@@ -158,24 +186,26 @@
                     android:text="Описание"
                     android:visibility="gone" />
 
-                <TextView
-                    android:id="@+id/audio"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="7dp"
-                    android:text="Аудио" />
-
-
-<!--                <androidx.recyclerview.widget.RecyclerView-->
-<!--                    android:id="@+id/rvAudioList"-->
+<!--                <TextView-->
+<!--                    android:id="@+id/audio"-->
 <!--                    android:layout_width="match_parent"-->
 <!--                    android:layout_height="wrap_content"-->
-<!--                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"-->
-<!--                    tools:listitem="@layout/audio_item" />-->
+<!--                    android:layout_marginTop="7dp"-->
+<!--                    android:text="Аудио" />-->
+
+
+                <!--                <androidx.recyclerview.widget.RecyclerView-->
+                <!--                    android:id="@+id/rvAudioList"-->
+                <!--                    android:layout_width="match_parent"-->
+                <!--                    android:layout_height="wrap_content"-->
+                <!--                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"-->
+                <!--                    tools:listitem="@layout/audio_item" />-->
 
                 <LinearLayout
+                    android:visibility="gone"
+                    android:layout_marginTop="8dp"
                     android:id="@+id/containerAudio"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
 
@@ -183,13 +213,13 @@
                         android:id="@+id/tvAudio"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Audio"
+                        android:text="Аудиогид"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
 
                     <androidx.appcompat.widget.AppCompatSeekBar
                         android:id="@+id/linearProgressBar"
-                        android:layout_width="250dp"
+                        android:layout_width="180dp"
                         android:layout_height="wrap_content"
                         android:progress="0"
                         android:progressTint="@color/green"
@@ -219,31 +249,26 @@
                         android:id="@+id/fStop"
                         android:layout_width="36dp"
                         android:layout_height="36dp"
-                        android:layout_marginEnd="32dp"
                         android:background="@drawable/background_btn"
                         android:clickable="true"
                         android:contentDescription="audio"
                         android:src="@drawable/pause"
-                        android:translationZ="2dp"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/tvAudio"
-                        app:layout_constraintVertical_bias="0.0" />
+                        android:translationZ="2dp" />
 
                 </LinearLayout>
 
                 <Button
                     android:id="@+id/btnCreateReview"
-                    android:text="Оставить отзыв"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+                    android:layout_height="wrap_content"
+                    android:text="Оставить отзыв" />
 
                 <LinearLayout
                     android:id="@+id/containerReview"
-                    android:visibility="gone"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:visibility="gone">
 
                     <EditText
                         android:id="@+id/etReview"
@@ -269,17 +294,17 @@
                 </LinearLayout>
 
                 <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:text="Отзывы"
                     android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+                    android:textStyle="bold" />
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvReviewList"
-                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                     tools:listitem="@layout/review_item" />
 
             </LinearLayout>
@@ -288,18 +313,18 @@
 
         <LinearLayout
             android:id="@+id/placeListContainer"
-            android:orientation="vertical"
-            android:background="@color/gray"
-            android:visibility="gone"
             android:layout_width="match_parent"
-            android:layout_height="300dp">
+            android:layout_height="300dp"
+            android:background="@color/gray"
+            android:orientation="vertical"
+            android:visibility="gone">
 
             <com.google.android.flexbox.FlexboxLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:alignItems="center"
                 android:paddingHorizontal="20dp"
                 android:paddingTop="10dp"
+                app:alignItems="center"
                 app:justifyContent="space_between">
 
                 <TextView

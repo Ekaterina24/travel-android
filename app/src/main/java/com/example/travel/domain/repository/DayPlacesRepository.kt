@@ -8,6 +8,7 @@ interface DayPlacesRepository {
 
     suspend fun getPlaceListByUser(token: String, date: String): List<DayPlaceModel>
 
+    suspend fun deletePlaceByRecordId(token:String, placeId: String)
 //    suspend fun updateDayPlaces()
 //
 //    suspend fun deleteDayPlaces()

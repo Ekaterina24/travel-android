@@ -6,5 +6,6 @@ data class ReviewAdapterModel(
     val userName: String,
     val text: String,
     val rating: Int,
-    val date: Date
+    val date: Date,
+    val placeId: String
 )

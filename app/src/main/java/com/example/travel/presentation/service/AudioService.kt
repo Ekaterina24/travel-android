@@ -203,8 +203,8 @@ class AudioService : Service() {
 
     private fun creatChannelNoti() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "Noti Title"
-            val descrip = "Noti Descrip"
+            val name = "Аудиогид"
+            val descrip = ""
             val impor = NotificationManager.IMPORTANCE_DEFAULT
             val channel = NotificationChannel(CHANNEL_ID, name, impor).apply {
                 description = descrip
@@ -224,7 +224,7 @@ class AudioService : Service() {
             PendingIntent.getActivity(applicationContext, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
         val remoteview = RemoteViews(packageName, R.layout.layout_custom_notification)
-//        remoteview.setTextViewText(R.id.tv_title, trackList[positNow].title)
+        remoteview.setTextViewText(R.id.tv_title, "Аудиогид")
 //        remoteview.setTextViewText(R.id.tv_single, trackList[positNow].singer)
 //        remoteview.setImageViewBitmap(
 //            R.id.img_song,

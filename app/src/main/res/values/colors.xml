@@ -4,9 +4,12 @@
     <color name="backgroundDark">#2B2626</color>
     <color name="white">#FFFFFFFF</color>
     <color name="red">#AC4646</color>
+    <color name="yellow">#FBC500</color>
     <color name="blue">#1966B8</color>
     <color name="gray">#CACACA</color>
     <color name="darkGray">#8F8F8F</color>
     <color name="green">#5DB075</color>
+    <color name="light_green">#B6E6C4</color>
     <color name="blackTransparentColor">#E6FFFFFF</color>
+    <color name="bright_foreground_light_disabled">#80CECECE</color>
 </resources>

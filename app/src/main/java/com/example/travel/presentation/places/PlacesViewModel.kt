@@ -16,6 +16,7 @@ import com.example.travel.domain.model.CityModel
 import com.example.travel.domain.model.PlaceModel
 import com.example.travel.domain.model.review.CreateReviewModel
 import com.example.travel.domain.model.review.GetReviewModel
+import com.example.travel.domain.usecase.CashAudioUseCase
 import com.example.travel.domain.usecase.CashCityListUseCase
 import com.example.travel.domain.usecase.review.CreateReviewUseCase
 import com.example.travel.domain.usecase.GetAudioListByPlaceUseCase
@@ -23,6 +24,7 @@ import com.example.travel.domain.usecase.GetAudioListUseCase
 import com.example.travel.domain.usecase.GetCategoryListUseCase
 import com.example.travel.domain.usecase.GetCityListUseCase
 import com.example.travel.domain.usecase.GetPlaceByIdUseCase
+import com.example.travel.domain.usecase.UpdateAudioUseCase
 import com.example.travel.domain.usecase.place.GetPlacesUseCase
 import com.example.travel.domain.usecase.UploadCityListUseCase
 import com.example.travel.domain.usecase.place.CashPlaceUseCase
@@ -32,6 +34,7 @@ import com.example.travel.domain.usecase.place.UploadPlaceListUseCase
 import com.example.travel.domain.usecase.place.UploadPlaceUseCase
 import com.example.travel.domain.usecase.review.GetReviewListByPlaceUseCase
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
@@ -65,11 +68,15 @@ class PlacesViewModelFactory : ViewModelProvider.Factory {
             val updatePlaceVisitedUseCase = UpdatePlaceVisitedUseCase(placeRepo)
             val updatePlaceFavoriteUseCase = UpdatePlaceFavoriteUseCase(placeRepo)
 
+            val insertToDbAudioUseCase = CashAudioUseCase(audioRepo)
+            val updateAudioUseCase = UpdateAudioUseCase(audioRepo)
+
             return PlacesViewModel(
                 useCase1, useCase2, useCase7, useCase8, useCase3, useCase4, useCase5, useCase6,
                 cashPlaceUseCase, uploadPlaceListUseCase, uploadPlaceUseCase,
                 updatePlaceVisitedUseCase, updatePlaceFavoriteUseCase,
-                createReviewUseCase, getReviewListByPlaceUseCase
+                createReviewUseCase, getReviewListByPlaceUseCase,
+                insertToDbAudioUseCase, updateAudioUseCase
             ) as T
         }
         throw IllegalArgumentException("Unknown class name")
@@ -92,6 +99,8 @@ class PlacesViewModel(
     private val updatePlaceFavoriteUseCase: UpdatePlaceFavoriteUseCase,
     private val createReviewUseCase: CreateReviewUseCase,
     private val getReviewListByPlaceUseCase: GetReviewListByPlaceUseCase,
+    private val cashAudioUseCase: CashAudioUseCase,
+    private val updateAudioUseCase: UpdateAudioUseCase,
 ) : ViewModel() {
     private var count = 0
     private var _placeList = MutableSharedFlow<List<PlaceModel>>()
@@ -122,8 +131,8 @@ class PlacesViewModel(
 
     fun createReview(token: String, review: CreateReviewModel) {
         viewModelScope.launch {
-            createReviewUseCase(token, review)
-            getReviewListByPlace(review.placeId)
+                createReviewUseCase(token, review)
+                getReviewListByPlace(review.placeId)
         }
     }
 
@@ -175,6 +184,18 @@ class PlacesViewModel(
     fun getAudioListByPlace(placeId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             _audioListByPlace.emit(getAudioListByPlaceUseCase(placeId))
+        }
+    }
+
+    fun addAudio(audio: AudioModel) {
+        viewModelScope.launch {
+            cashAudioUseCase(audio)
+        }
+    }
+
+    fun updateAudio(status: String, id: Long) {
+        viewModelScope.launch {
+            updateAudioUseCase(status, id)
         }
     }
 

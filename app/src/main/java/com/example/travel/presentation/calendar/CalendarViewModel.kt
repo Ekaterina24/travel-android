@@ -18,6 +18,7 @@ import com.example.travel.domain.usecase.AddDayPlaceUseCase
 import com.example.travel.domain.usecase.CashAudioUseCase
 import com.example.travel.domain.usecase.CashSubscribeListUseCase
 import com.example.travel.domain.usecase.CreateTripUseCase
+import com.example.travel.domain.usecase.DeletePlaceByRecordIdUseCase
 import com.example.travel.domain.usecase.GetDayListByUserUseCase
 import com.example.travel.domain.usecase.GetTripListByUserUseCase
 import com.example.travel.domain.usecase.UpdateAudioUseCase
@@ -34,19 +35,24 @@ class CalendarViewModelFactory : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(CalendarViewModel::class.java)) {
             val repo = TripRepositoryImpl()
-            val repo2 = DayPlacesRepositoryImpl()
+            val dayPlacesRepo = DayPlacesRepositoryImpl()
             val repo3 = SubscribeRepositoryImpl(App.INSTANCE)
             val repo4 = AudioRepositoryImpl(App.INSTANCE)
                 val useCase2 = CreateTripUseCase(repo)
                 val useCase = GetTripListByUserUseCase(repo)
-                val useCase3 = AddDayPlaceUseCase(repo2)
-                val useCase4 = GetDayListByUserUseCase(repo2)
+                val useCase3 = AddDayPlaceUseCase(dayPlacesRepo)
+                val useCase4 = GetDayListByUserUseCase(dayPlacesRepo)
                 val useCase5 = CashSubscribeListUseCase(repo3)
                 val useCase6 = CashAudioUseCase(repo4)
                 val useCase7 = UpdateAudioUseCase(repo4)
                 val useCase8 = UploadSubscribeUseCase(repo3)
 
-            return CalendarViewModel(useCase2, useCase, useCase3, useCase4, useCase5, useCase6, useCase7, useCase8) as T
+            val deletePlaceByRecordIdUseCase = DeletePlaceByRecordIdUseCase(dayPlacesRepo)
+
+            return CalendarViewModel(
+                useCase2, useCase, useCase3, useCase4,
+                useCase5, useCase6, useCase7, useCase8,
+                deletePlaceByRecordIdUseCase) as T
         }
         throw IllegalArgumentException("Unknown class name")
     }
@@ -61,6 +67,7 @@ class CalendarViewModel(
     private val cashAudioUseCase: CashAudioUseCase,
     private val updateAudioUseCase: UpdateAudioUseCase,
     private val uploadSubscribeUseCase: UploadSubscribeUseCase,
+    private val deletePlaceByRecordIdUseCase: DeletePlaceByRecordIdUseCase,
 ): ViewModel() {
     private var _tripListByUser = MutableSharedFlow<List<GetTripListModel>>()
     var tripListByUser = _tripListByUser.asSharedFlow()
@@ -81,9 +88,10 @@ class CalendarViewModel(
         }
     }
 
-    fun createSub(subscribe: GetSubscribeModel) {
+    fun deletePlaceByStringId(token: String, placeId: String, date: String) {
         viewModelScope.launch {
-            cashSubscribeUseCase(subscribe)
+            deletePlaceByRecordIdUseCase(token, placeId)
+            getDayListByUser(token, date)
         }
     }
 

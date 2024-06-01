@@ -60,16 +60,10 @@ class ProfileRatingFragment : Fragment() {
 
         val rvAdapter = PlaceListAdapter(
             object : PlaceActionListener {
-
                 override fun getPlaceId(genId: Long) {
-
-
                 }
-
             }
-
         )
-
 
         binding.rvPlaceList.adapter = rvAdapter
 

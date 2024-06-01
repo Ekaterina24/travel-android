@@ -1,12 +1,14 @@
 package com.example.travel.presentation.profile
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
@@ -15,6 +17,9 @@ import com.example.travel.MainActivity
 import com.example.travel.R
 import com.example.travel.data.local.prefs.SharedPreferences
 import com.example.travel.databinding.FragmentProfileBinding
+import com.example.travel.domain.model.UpdateEmailRequest
+import com.example.travel.domain.model.UpdateScoresRequest
+import com.example.travel.domain.model.UserProfileModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.musfickjamil.snackify.Snackify
 import kotlinx.coroutines.Dispatchers
@@ -27,7 +32,7 @@ class ProfileFragment : Fragment() {
         fun newInstance() = ProfileFragment()
     }
 
-    private val themeTitleList = arrayOf("Light", "Dark", "Auto")
+    private val themeTitleList = arrayOf("Light", "Dark")
 
     private val viewModelProfile: ProfileViewModel by activityViewModels {
         ProfileViewModelFactory()
@@ -40,15 +45,7 @@ class ProfileFragment : Fragment() {
         SharedPreferences(requireContext())
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-//        if (sharedPreferences.getBooleanValue("theme") == true) {
-//            (activity as MainActivity).setTheme(R.style.AppTheme_Dark)
-//        } else {
-//            (activity as MainActivity).setTheme(R.style.Theme_Travel)
-//        }
-    }
+    private lateinit var currentUser: UserProfileModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -62,27 +59,18 @@ class ProfileFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         var checkedTheme = sharedPreferences.theme
-
-        binding.etEmail.setText("Theme ${themeTitleList[sharedPreferences.theme!!]}")
-
-        val themeDialog = MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Theme")
-            .setPositiveButton("Ok") { _, _ ->
-                sharedPreferences.theme = checkedTheme
-                AppCompatDelegate.setDefaultNightMode(sharedPreferences.themeFlags[checkedTheme!!])
-                binding.etEmail.setText("Theme ${themeTitleList[sharedPreferences.theme!!]}")
+        Log.d("TAG", "checkedTheme: $checkedTheme")
+        binding.chosenTheme.setText("Светлая тема")
+        when(themeTitleList[sharedPreferences.theme!!]) {
+            "Light" -> {
+                binding.chosenTheme.setText("Светлая тема")
+                binding.switchTheme.isChecked = false
             }
-
-            .setSingleChoiceItems(themeTitleList, checkedTheme!!) { _, which ->
-                checkedTheme = which
+            "Dark" -> {
+                binding.chosenTheme.setText("Темная тема")
+                binding.switchTheme.isChecked = true
             }
-            .setCancelable(false)
-
-//        if (sharedPreferences.getBooleanValue("theme") == true) {
-//            (activity as MainActivity).setTheme(R.style.AppTheme_Dark)
-//        } else {
-//            (activity as MainActivity).setTheme(R.style.AppTheme_Light)
-//        }
+        }
 
         val token = "Bearer ${sharedPreferences.getStringValue("token")}"
         val city = sharedPreferences.getStringValue("city")
@@ -93,24 +81,22 @@ class ProfileFragment : Fragment() {
         viewModelProfile.uploadUserProfile(token)
 //        }
 
-//        binding.switchTheme.isChecked = sharedPreferences.getBooleanValue("theme")!!
-
-
+        binding.switchTheme.isChecked = false
         binding.switchTheme.setOnCheckedChangeListener { compoundButton, isChecked ->
-            if (isChecked) {
-                themeDialog.show()
-//                sharedPreferences.saveBoolean("theme", true)
-//                restartApp()
-            } else {
-                sharedPreferences.saveBoolean("theme", false)
-                restartApp()
+            when (isChecked) {
+                true -> checkedTheme = 1
+                false -> checkedTheme = 0
             }
+            sharedPreferences.theme = checkedTheme
+            AppCompatDelegate.setDefaultNightMode(sharedPreferences.themeFlags[checkedTheme!!])
         }
 
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             viewModelProfile.userProfile.collect {
                 withContext(Dispatchers.Main) {
                     binding.etEmail.setText(it.email)
+                    Log.d("TAG", "email: ${it.email}")
+                    currentUser = it
 
                     binding.etEmail.apply {
                         isFocusable = false
@@ -126,6 +112,8 @@ class ProfileFragment : Fragment() {
         binding.btnEdit.setOnClickListener {
             it.isEnabled = false
             binding.btnSave.isEnabled = true
+            binding.btnSave.setBackgroundColor(requireContext().getColor(R.color.green))
+            binding.btnEdit.setBackgroundColor(requireContext().getColor(R.color.gray))
             binding.etEmail.apply {
                 isFocusable = true
                 isFocusableInTouchMode = true
@@ -135,7 +123,11 @@ class ProfileFragment : Fragment() {
         }
 
         binding.btnSave.isEnabled = false
+        binding.btnSave.setBackgroundColor(requireContext().getColor(R.color.gray))
         binding.btnSave.setOnClickListener {
+            viewModelProfile.updateEmailFromApi(token, UpdateEmailRequest(binding.etEmail.text.toString()))
+            Snackify.success(binding.btnSave, "Почта сохранена", Toast.LENGTH_SHORT).show()
+            binding.btnEdit.setBackgroundColor(requireContext().getColor(R.color.blue))
             it.isEnabled = false
             binding.btnEdit.isEnabled = true
             binding.etEmail.apply {
@@ -143,8 +135,7 @@ class ProfileFragment : Fragment() {
                 isFocusableInTouchMode = false
                 isCursorVisible = false
             }
-
-            Snackify.success(binding.btnEdit, "Данные изменены", Snackify.LENGTH_SHORT).show()
+            binding.btnSave.setBackgroundColor(requireContext().getColor(R.color.gray))
         }
 
         binding.btnExit.setOnClickListener {
@@ -154,13 +145,6 @@ class ProfileFragment : Fragment() {
         }
 
 
-    }
-
-    fun restartApp() {
-        val i = Intent(requireContext().applicationContext, MainActivity::class.java)
-        i.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        startActivity(i)
-        (activity as MainActivity).finish()
     }
 
 

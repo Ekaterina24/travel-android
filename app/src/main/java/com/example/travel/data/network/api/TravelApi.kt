@@ -16,6 +16,7 @@ import com.example.travel.data.network.dto.TypeSubDTO
 import com.example.travel.data.network.dto.UserDTO
 import com.example.travel.data.network.dto.UserProfileDTO
 import com.example.travel.domain.model.CategoryModel
+import com.example.travel.domain.model.UpdateEmailRequest
 import com.example.travel.domain.model.UpdateScoresRequest
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -23,6 +24,7 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.PATCH
@@ -34,7 +36,8 @@ import java.util.concurrent.TimeUnit
 //const val BASE_URL = "https://192.168.1.28:3000/"
 //const val BASE_URL = "http://10.0.2.2:3000/"
 //const val BASE_URL = "https://0a80-188-66-38-126.ngrok-free.app/"
-const val BASE_URL = "https://travel-925e.onrender.com/"
+//const val BASE_URL = "https://travel-925e.onrender.com/"
+const val BASE_URL = "https://4818-46-188-123-251.ngrok-free.app/"
 //const val BASE_URL = "http://192.168.111.242:3000/"
 
 interface TravelApi {
@@ -108,6 +111,12 @@ interface TravelApi {
 
     @PATCH("auth/scores")
     suspend fun updateScoresFromApi(@Header("Authorization") token: String, @Body() scores: UpdateScoresRequest)
+
+    @PATCH("auth/email")
+    suspend fun updateEmailFromApi(@Header("Authorization") token: String, @Body() email: UpdateEmailRequest)
+
+    @DELETE("day-places/{id}")
+    suspend fun deletePlaceByStringId(@Header("Authorization") token: String, @Path("id") placeId: String)
 }
 
 object RetrofitInstance {
